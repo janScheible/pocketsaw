@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Pocketsaw dependency graph</title>
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+
+		<style type="text/css">
+			html, body {
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+			#mynetwork {
+				width: 100vw;
+				height: 100vh;
+				border: 1px solid lightgray;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="mynetwork"></div>
+
+		<script type="text/javascript">
+			var data = {
+				nodes: new vis.DataSet(${nodes-array}),
+				edges: new vis.DataSet(${edges-array})
+			};
+			var options = {
+				/*
+                layout: {
+                    hierarchical: {
+                        direction: 'UD'
+                    }
+                }*/
+            };
+			var network = new vis.Network(document.getElementById('mynetwork'), data, options);
+		</script>
+	</body>
+</html>

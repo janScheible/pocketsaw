@@ -1,2 +1,178 @@
-# pocketsaw
+[adding-uses-workflow]: adding-uses-workflow.gif "Adding of uses relations"
+[pocketsaw-package-group-structure]: adding-uses-workflow-all-uses.png "Pocketsaw package group structure"
+
+# Pocketsaw
+
 Compile time sub-module system, aimed at package group dependency organization within a Maven project resp. Java 9 module.
+
+## Background
+
+Highly inspired by the awesome [Jabsaw](https://github.com/ruediste/jabsaw) project.
+And yes, pocketsaw instead of jabsaw (which is already a smaller jigsaw) is an intended pun. ;-)
+
+The main differences are:
+- visualization with a HTML template using vis.js (instead of graphviz/dot)
+- default source of code/package dependency information is the completely underrated [jdeps](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jdeps.html) command-line tool of the JDK (instead of the ASM library)
+- package groups within the Maven project (resp. Java module) are called sub-module (instead of module to avoid name collision [Java Platform Module System](http://openjdk.java.net/projects/jigsaw/spec/))
+- package groups outside the Maven project are called external functionality
+
+The following image shows the Pocketsaw package group structure.
+Yellow boxes are sub-modules while the blue ones are external functionalities.
+The gray ones are a special case, they represent the shaded libraries which are modeled as sub-modules because they are part of the codebase (see [Shaded dependencies](shaded-dependencies)).
+In case of a not allowed code dependency there would be a red arrow whilst in case of a defined but not used in the code dependency a gray arrow would be displayed.
+
+![pocketsaw-package-group-structure]
+
+## Installation
+
+The Maven artifacts can't be found in an official repository yet ([JitPack](https://jitpack.io) usage is pending until [this issue](https://github.com/jitpack/jitpack.io/issues/2872) is resolved).
+
+For a local installation the following is enough:
+
+```
+git clone git@github.com:janScheible/pocketsaw.git
+cd pocketsaw
+mvn install
+```
+
+## Workflow for using Pocketsaw in a project
+
+### Adding of Maven dependency
+
+Add
+```xml
+<dependency>
+	<groupId>com.scheible.pocketsaw.api</groupId>
+	<artifactId>pocketsaw-api</artifactId>
+	<version>1.0.0</version>
+	<scope>provided</scope>
+</dependency>
+```
+and
+```xml
+<dependency>
+	<groupId>com.scheible.pocketsaw.impl</groupId>
+	<artifactId>pocketsaw-impl</artifactId>
+	<version>1.0.0</version>
+	<scope>test</scope>
+</dependency>
+```
+to project.
+
+If not a Spring based project add
+```xml
+<dependency>
+	<groupId>io.github.lukehutch</groupId>
+	<artifactId>fast-classpath-scanner</artifactId>
+	<version>2.21</version>
+	<scope>test</scope>
+</dependency>
+```
+as well.
+Currently [FastClasspathScanner](https://github.com/lukehutch/fast-classpath-scanner) is the only other supported classpath scanner.
+But a custom one can simply be used by extending the class `com.scheible.pocketsaw.impl.descriptor.ClasspathScanner` and using any already available classpath scanning facilities (for example [Reflections](https://github.com/ronmamo/reflections)).
+
+### Execution of Pocketsaw in the build
+
+Create a unit test like:
+```java
+public class PocketsawSubModulesTest {
+
+	private static Pocketsaw.AnalysisResult result;
+
+	@BeforeClass
+	public static void beforeClass() {
+		result = Pocketsaw.analizeCurrentProject(SpringClasspathScanner.create(Pocketsaw.class));
+	}
+	
+	@Test
+	public void todo() {		
+	}
+}
+```
+
+For non Spring projects use `FastClasspathScanner.create(...)` and for Spring based ones `SpringClasspathScanner.create(...)`.
+
+### Matching of all packages with sub-modules and external functionalities
+
+Add `@SubModule` and `@ExternalFunctionality` annotated classed until every package is matched and the unit test passes.
+In case of not yet matched package a error message like `UnmatchedPackageException: The package 'com.scheible.javasubmodules.impl.visualization' was not matched at all!` is displayed and either a sub-module or an external functionality has to be added. 
+`@SubModule` annotated classes have to be placed in the root package of the sub-module. 
+The default is that all sub-packages are include as well but this behavor can be override by `includeSubPackages = false`.
+For external functionalities a package match pattern has to specified.
+The syntax supports Ant style pattern (e.g. `com.test.*` matches all classes in the `com.test` package and `com.test.**` matches the classes in the sub-packages too).
+
+The following conventions might be used:
+* `@SubModule` annotated classes have the suffix `SubModule`.
+  ```java
+  package com.scheible.pocketsaw.impl.visualization;
+  
+  /**
+   * Sub module for visualizing the dependency graph.
+   */
+  @SubModule
+  public class VisualizationSubModule { 
+  }
+  ```
+* `@ExternalFunctionality` are collected as inner static classes in a class called `ExternalFunctionalities` in the root package of the project.
+  ```java
+  package com.scheible.pocketsaw.impl;
+  
+  public class ExternalFunctionalities {
+  
+    @ExternalFunctionality(packageMatchPattern = "org.springframework.beans.**")
+	  public static class SpringBeans {
+	  }
+  }
+  ```
+  
+As soon as all packages are matched the dependency graph HTML is generated.
+It can be found in `./target/pocketsaw-dependency-graph.html`.
+The full path is also printed on standard out while analyzing the project.
+  
+### Definition of the allowed sub-module dependencies
+
+After every package is matched, uses relations have to be added to the sub-modules until all arrows are green.
+Uses relations are defined in the `@SubModule` annotation like `@SubModule({SpringBeans})` or `@SubModule(includeSubPackages = false, uses = {{SpringBeans})` in case of multiple values.
+
+The following sequence illustrates that process:
+![adding-uses-workflow]
+
+### Automatic enforcement of allowed dependencies
+
+To make sure that the sub-modules and their dependencies are verify automatically replace the `todo()` test with:
+```java
+@Test
+public void testNoDescriptorCycle() {
+	assertThat(result.getAnyDescriptorCycle()).isEmpty();
+}
+
+@Test
+public void testNoCodeCycle() {
+	assertThat(result.getAnyCodeCycle()).isEmpty();
+}
+
+@Test
+public void testNoIllegalCodeDependencies() {
+	assertThat(result.getIllegalCodeDependencies()).isEmpty();
+}
+```
+
+In this example [AssertJ](http://joel-costigliola.github.io/assertj/) is used and displays nice error messages in case of one of the asserts is violated.
+
+In the future the unit test might fail when new packages or additional libraries are added.
+The approach described in [Matching of all packages with sub-modules and external functionalities](#matching-of-all-packages-with-sub-modules-and-external-functionalities) is used than.
+
+It might also fail if one of the asserts are vialoted.
+In this case either the code has to be fixed to remove the not allowed code dependency or an additional usage relation has to be added like described in [Definition of the allowed sub-module dependencies](#definition-of-the-allowed-sub-module-dependencies).
+
+## Shaded dependencies
+
+To avoid unnecessary Maven dependency conflicts the following libraries are included shaded:
+
+* `AntPathMatcher` and dependencies of [org.springframework:spring-core:5.0.6](https://github.com/spring-projects/spring-framework/blob/v5.0.6.RELEASE/spring-core/src/main/java/org/springframework/util/AntPathMatcher.java) ([license](spring-framework-LICENSE)) in the package `com.scheible.pocketsaw.impl.shaded.org.springframework`
+* [com.eclipsesource.minimal-json:minimal-json:0.9.5](https://github.com/ralfstx/minimal-json/tree/0.9.5) ([license](minimal-json-LICENSE)) in the package `com.scheible.pocketsaw.impl.shaded.com.eclipsesource`
+
+## Licencse
+
+[MIT License](LICENSE)

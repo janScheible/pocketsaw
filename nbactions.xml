@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+	<action>
+		<actionName>CUSTOM-Sortpom</actionName>
+		<displayName>Sortpom</displayName>
+		<goals>
+			<goal>com.github.ekryd.sortpom:sortpom-maven-plugin:sort</goal>
+		</goals>
+		<properties>
+			<sort.keepBlankLines>true</sort.keepBlankLines>
+			<sort.nrOfIndentSpace>-1</sort.nrOfIndentSpace>
+		</properties>
+	</action>
+	<action>
+		<actionName>CUSTOM-FindBugs</actionName>
+		<displayName>FindBugs</displayName>
+		<goals>
+			<goal>org.codehaus.mojo:findbugs-maven-plugin:check</goal>
+		</goals>
+		<properties>
+			<findbugs.onlyAnalyze>com.scheible.pocketsaw.api,com.scheible.pocketsaw.impl,com.scheible.pocketsaw.impl.code.-,com.scheible.pocketsaw.impl.dependency.-,com.scheible.pocketsaw.impl.descriptor.-,com.scheible.pocketsaw.impl.matching.-,com.scheible.pocketsaw.impl.visualization.-</findbugs.onlyAnalyze>
+		</properties>
+	</action>	
+</actions>
