@@ -5,6 +5,26 @@
 
 Compile time sub-module system, aimed at package group dependency organization within a Maven project resp. Java 9 module.
 
+## Motivation
+
+Package cycles are bad.
+Especially between packages on the same level.
+They make the codebase harder to change (if A depends on B and vice versa, then changing A would most likely require to also change B and both will be effectively one thing) and understand.
+
+That package cycles should be avoided is an open secret (see [SEI CERT Oracle Coding Standard for Java
+SEI CERT Oracle Coding Standard for Java at Carnigen Mellon Software Engineering](https://wiki.sei.cmu.edu/confluence/display/java/DCL60-J.+Avoid+cyclic+dependencies+between+packages)).
+But as for example Jens Schauder mentions in his [blog entry](http://blog.schauderhaft.de/2011/07/17/breaking-dependency-cylces/) the awareness among developers seems not to be that high.
+[This awesome article](https://dzone.com/articles/structure-spring-core) sheds some light on the internal package organization of the Spring Framework.
+It shows that the Spring guys really take care of their dependencies (in contrast to other as well shortly mentioned Open Source projects).
+And this was the main motivation for creating Pocketsaw: Having an easy and lightweight tool to model and check the internal package structure.
+
+The following image shows the Pocketsaw package group structure.
+Yellow boxes are sub-modules while the blue ones are external functionalities.
+The gray ones are a special case, they represent the shaded libraries which are modeled as sub-modules because they are part of the codebase (see [Shaded dependencies](shaded-dependencies)).
+In case of a not allowed code dependency there would be a red arrow whilst in case of a defined but not used in the code dependency a gray arrow would be displayed.
+
+![pocketsaw-package-group-structure]
+
 ## Background
 
 Highly inspired by the awesome [Jabsaw](https://github.com/ruediste/jabsaw) project.
@@ -15,13 +35,6 @@ The main differences are:
 - default source of code/package dependency information is the completely underrated [jdeps](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jdeps.html) command-line tool of the JDK (instead of the ASM library)
 - package groups within the Maven project (resp. Java module) are called sub-module (instead of module to avoid name collision [Java Platform Module System](http://openjdk.java.net/projects/jigsaw/spec/))
 - package groups outside the Maven project are called external functionality
-
-The following image shows the Pocketsaw package group structure.
-Yellow boxes are sub-modules while the blue ones are external functionalities.
-The gray ones are a special case, they represent the shaded libraries which are modeled as sub-modules because they are part of the codebase (see [Shaded dependencies](shaded-dependencies)).
-In case of a not allowed code dependency there would be a red arrow whilst in case of a defined but not used in the code dependency a gray arrow would be displayed.
-
-![pocketsaw-package-group-structure]
 
 ## Installation
 
