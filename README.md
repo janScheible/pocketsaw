@@ -20,7 +20,7 @@ And this was the main motivation for creating Pocketsaw: Having an easy and ligh
 
 The following image shows the Pocketsaw package group structure.
 Yellow boxes are sub-modules while the blue ones are external functionalities.
-The gray ones are a special case, they represent the shaded libraries which are modeled as sub-modules because they are part of the codebase (see [Shaded dependencies](shaded-dependencies)).
+The gray ones are a special case, they represent the shaded libraries which are modeled as sub-modules because they are part of the codebase (see [Shaded dependencies](#shaded-dependencies)).
 In case of a not allowed code dependency there would be a red arrow whilst in case of a defined but not used in the code dependency a gray arrow would be displayed.
 
 ![pocketsaw-package-group-structure]
