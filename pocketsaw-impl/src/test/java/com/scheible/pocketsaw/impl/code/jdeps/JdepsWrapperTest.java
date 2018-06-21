@@ -1,7 +1,6 @@
 package com.scheible.pocketsaw.impl.code.jdeps;
 
-import com.scheible.pocketsaw.impl.code.jdeps.ApiAnnotationDependencyFilter;
-import com.scheible.pocketsaw.impl.code.jdeps.JdepsWrapper;
+import com.scheible.pocketsaw.impl.code.DependencyFilter;
 import com.scheible.pocketsaw.impl.code.PackageDependecies;
 import java.util.HashSet;
 import org.assertj.core.api.Assertions;
@@ -16,7 +15,7 @@ public class JdepsWrapperTest {
 	@Test
 	public void testRun() {
 		PackageDependecies packageDependecies = JdepsWrapper.run("./target/classes",
-				new ApiAnnotationDependencyFilter(new HashSet<>()));
+				new DependencyFilter(new HashSet<>(), true));
 		
 		Assertions.assertThat(packageDependecies.keySet()).isNotEmpty();
 	}

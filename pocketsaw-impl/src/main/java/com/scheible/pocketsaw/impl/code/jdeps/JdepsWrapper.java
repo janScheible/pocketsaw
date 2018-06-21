@@ -1,10 +1,10 @@
 package com.scheible.pocketsaw.impl.code.jdeps;
 
+import com.scheible.pocketsaw.impl.code.DependencyFilter;
 import com.scheible.pocketsaw.impl.code.PackageDependecies;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,7 +19,7 @@ import java.util.function.Function;
  */
 public class JdepsWrapper {
 
-	private static PackageDependecies parseOutput(final List<String> lines, ApiAnnotationDependencyFilter dependencyFilter) {
+	private static PackageDependecies parseOutput(final List<String> lines, DependencyFilter dependencyFilter) {
 		Map<String, Set<String>> packageDependecies = new HashMap<>();
 
 		final Function<String, String> packageNameExtractor = className -> {
@@ -46,7 +46,7 @@ public class JdepsWrapper {
 		return new PackageDependecies(packageDependecies);
 	}
 
-	public static PackageDependecies run(final String relativeClassesDirectory, ApiAnnotationDependencyFilter dependencyFilter) {
+	public static PackageDependecies run(final String relativeClassesDirectory, DependencyFilter dependencyFilter) {
 		try {
 			final Process process = new ProcessBuilder("jdeps", "-v", relativeClassesDirectory).redirectErrorStream(true).start();
 			List<String> lines = new ArrayList<>();

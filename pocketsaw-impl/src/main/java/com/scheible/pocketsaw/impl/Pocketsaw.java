@@ -2,7 +2,7 @@ package com.scheible.pocketsaw.impl;
 
 import com.scheible.pocketsaw.api.ExternalFunctionality;
 import com.scheible.pocketsaw.api.SubModule;
-import com.scheible.pocketsaw.impl.code.jdeps.ApiAnnotationDependencyFilter;
+import com.scheible.pocketsaw.impl.code.DependencyFilter;
 import com.scheible.pocketsaw.impl.code.PackageDependecies;
 import com.scheible.pocketsaw.impl.code.jdeps.JdepsWrapper;
 import com.scheible.pocketsaw.impl.dependency.DependencyGraph;
@@ -60,11 +60,11 @@ public class Pocketsaw {
 	public static AnalysisResult analizeCurrentProject(ClasspathScanner classpathScanner) {
 		final DescriptorInfo descriptorInfo = DescriptorInfo.createFromClasspath(classpathScanner);
 
-		final ApiAnnotationDependencyFilter dependencyFilter = new ApiAnnotationDependencyFilter(Stream.of(
+		final DependencyFilter dependencyFilter = new DependencyFilter(Stream.of(
 				classpathScanner.getSubModuleAnnotatedClassNames().stream(),
 				classpathScanner.getExternalFunctionalityAnnotatedClassNames().stream(),
 				Arrays.asList(SubModule.class.getName(), ExternalFunctionality.class.getName()).stream()
-		).flatMap(identity()).collect(Collectors.toSet()));
+		).flatMap(identity()).collect(Collectors.toSet()), true);
 		final PackageDependecies packageDependecies = JdepsWrapper.run(CLASS_DIRECTORY, dependencyFilter);
 
 		final DependencyGraph dependencyGraph = DependencyGraphFactory.create(packageDependecies,
