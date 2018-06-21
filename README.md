@@ -55,19 +55,19 @@ mvn install
 Add
 ```xml
 <dependency>
-	<groupId>com.scheible.pocketsaw.api</groupId>
-	<artifactId>pocketsaw-api</artifactId>
-	<version>1.0.0</version>
-	<scope>provided</scope>
+    <groupId>com.scheible.pocketsaw.api</groupId>
+    <artifactId>pocketsaw-api</artifactId>
+    <version>1.0.0</version>
+    <scope>provided</scope>
 </dependency>
 ```
 and
 ```xml
 <dependency>
-	<groupId>com.scheible.pocketsaw.impl</groupId>
-	<artifactId>pocketsaw-impl</artifactId>
-	<version>1.0.0</version>
-	<scope>test</scope>
+    <groupId>com.scheible.pocketsaw.impl</groupId>
+    <artifactId>pocketsaw-impl</artifactId>
+    <version>1.0.0</version>
+    <scope>test</scope>
 </dependency>
 ```
 to project.
@@ -75,10 +75,10 @@ to project.
 If not a Spring based project add
 ```xml
 <dependency>
-	<groupId>io.github.lukehutch</groupId>
-	<artifactId>fast-classpath-scanner</artifactId>
-	<version>2.21</version>
-	<scope>test</scope>
+    <groupId>io.github.lukehutch</groupId>
+    <artifactId>fast-classpath-scanner</artifactId>
+    <version>2.21</version>
+    <scope>test</scope>
 </dependency>
 ```
 as well.
@@ -91,19 +91,20 @@ Create a unit test like:
 ```java
 public class PocketsawSubModulesTest {
 
-	private static Pocketsaw.AnalysisResult result;
+    private static Pocketsaw.AnalysisResult result;
 
-	@BeforeClass
-	public static void beforeClass() {
-		result = Pocketsaw.analizeCurrentProject(SpringClasspathScanner.create(Pocketsaw.class));
-	}
+    @BeforeClass
+    public static void beforeClass() {
+        result = Pocketsaw.analizeCurrentProject(SpringClasspathScanner.create(PocketsawSubModulesTest.class));
+    }
 	
-	@Test
-	public void todo() {		
-	}
+    @Test
+        public void todo() {		
+    }
 }
 ```
 
+It is assumed that the test class is created in the root package of the project because classpath scanning will start with the package of the class used for classpath scanner creation.
 For non Spring projects use `FastClasspathScanner.create(...)` and for Spring based ones `SpringClasspathScanner.create(...)`.
 
 ### Matching of all packages with sub-modules and external functionalities
@@ -133,9 +134,9 @@ The following conventions might be used:
   
   public class ExternalFunctionalities {
   
-    @ExternalFunctionality(packageMatchPattern = "org.springframework.beans.**")
-	  public static class SpringBeans {
-	  }
+      @ExternalFunctionality(packageMatchPattern = "org.springframework.beans.**")
+      public static class SpringBeans {
+      }
   }
   ```
   
@@ -157,17 +158,17 @@ To make sure that the sub-modules and their dependencies are verify automaticall
 ```java
 @Test
 public void testNoDescriptorCycle() {
-	assertThat(result.getAnyDescriptorCycle()).isEmpty();
+    assertThat(result.getAnyDescriptorCycle()).isEmpty();
 }
 
 @Test
 public void testNoCodeCycle() {
-	assertThat(result.getAnyCodeCycle()).isEmpty();
+    assertThat(result.getAnyCodeCycle()).isEmpty();
 }
 
 @Test
 public void testNoIllegalCodeDependencies() {
-	assertThat(result.getIllegalCodeDependencies()).isEmpty();
+    assertThat(result.getIllegalCodeDependencies()).isEmpty();
 }
 ```
 
