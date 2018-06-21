@@ -79,7 +79,10 @@ public class DependencyGraphFactory {
 						.orElseGet(() -> externalFunctionalitiesMatcher.findMatching(usedPackageName)
 								.orElseThrow(() -> new UnmatchedPackageException("The package '" + usedPackageName + "' was not matched at all!")));
 
-				codeDependecies.computeIfAbsent(subModule, (key) -> new HashSet<>()).add(matchedPackage);
+				boolean isSelfDependency = subModule.equals(matchedPackage);
+				if(!isSelfDependency) {
+					codeDependecies.computeIfAbsent(subModule, (key) -> new HashSet<>()).add(matchedPackage);
+				}
 			}
 		}
 
