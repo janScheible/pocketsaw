@@ -38,7 +38,7 @@ public class JdepsWrapper {
 			final String dependentPackageName = packageNameExtractor.apply(dependentClass);
 
 			Set<String> dependentClasses = packageDependecies.computeIfAbsent(packageName, key -> new HashSet<>());
-			if (!packageName.equals(dependentPackageName) && dependencyFilter.apply(className, dependentClass)) {
+			if (!packageName.equals(dependentPackageName) && !dependencyFilter.apply(className, dependentClass)) {
 				dependentClasses.add(dependentPackageName);
 			}
 		}

@@ -35,11 +35,11 @@ public class DependencyFilter {
 
 	public boolean apply(String className, String dependentClass) {
 		if (ignoredClassNames.contains(className) || ignoredClassNames.contains(dependentClass)) {
-			return false;
+			return true;
 		} else if (ignoreCoreJavaClasses && (dependentClass.startsWith("java.") || dependentClass.startsWith("javax."))) {
-			return false;
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 }
