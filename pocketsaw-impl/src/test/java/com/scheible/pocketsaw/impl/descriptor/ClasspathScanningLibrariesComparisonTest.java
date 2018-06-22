@@ -1,8 +1,5 @@
-package com.scheible.pocketsaw.impl;
+package com.scheible.pocketsaw.impl.descriptor;
 
-import com.scheible.pocketsaw.impl.descriptor.ClasspathScanner;
-import com.scheible.pocketsaw.impl.descriptor.FastClasspathScanner;
-import com.scheible.pocketsaw.impl.descriptor.SpringClasspathScanner;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
@@ -10,7 +7,7 @@ import org.junit.Test;
  *
  * @author sj
  */
-public class ClasspathScanningLibrariesTest {
+public class ClasspathScanningLibrariesComparisonTest {
 
 	@Test
 	public void compareScanningResult() {
