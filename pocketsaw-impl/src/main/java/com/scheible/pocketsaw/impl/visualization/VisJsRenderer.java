@@ -26,16 +26,18 @@ public class VisJsRenderer {
 
 		final int id;
 		final String label;
+		final String title;
 		final String color;
 
-		Node(final int id, final String label, final String color) {
+		Node(final int id, final String label, final String title, final String color) {
 			this.id = id;
 			this.label = label;
+			this.title = title;
 			this.color = color;
 		}
 
 		public JsonObject toJsonObject() {
-			return Json.object().add("id", id).add("label", label).add("color", color);
+			return Json.object().add("id", id).add("label", label).add("title", title).add("color", color);
 		}
 	}
 
@@ -100,7 +102,7 @@ public class VisJsRenderer {
 
 		for (PackageGroupDescriptor descriptor : dependencyGraph.getPackageGroups()) {
 			packageGroupToIdMapping.put(descriptor, idCounter);
-			nodes.add(new Node(idCounter, descriptor.getName(), descriptor.getColor()));
+			nodes.add(new Node(idCounter, descriptor.getName(), descriptor.getPackageMatchPattern(), descriptor.getColor()));
 			idCounter++;
 		}
 
