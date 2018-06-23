@@ -10,6 +10,7 @@ import com.scheible.pocketsaw.impl.dependency.Dependency;
 import java.io.File;
 import java.io.IOException;
 import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
+import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.Json;
 import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.JsonObject;
 import java.io.BufferedReader;
@@ -21,23 +22,29 @@ import java.util.stream.Collectors;
 public class VisJsRenderer {
 
 	private static final String TEMPLATE_FILE = "visualization-template.html";
-
+	
 	static class Node {
+
+		private enum Type {
+			SUB_MODULE, EXTERNAL_FUNCTIONALITY
+		}
 
 		final int id;
 		final String label;
 		final String title;
 		final String color;
+		private final Type type;
 
-		Node(final int id, final String label, final String title, final String color) {
+		Node(final int id, final String label, final String title, final String color, Type type) {
 			this.id = id;
 			this.label = label;
 			this.title = title;
 			this.color = color;
+			this.type = type;
 		}
 
 		public JsonObject toJsonObject() {
-			return Json.object().add("id", id).add("label", label).add("title", title).add("color", color);
+			return Json.object().add("id", id).add("label", label).add("title", title).add("color", color).add("type", type.name());
 		}
 	}
 
@@ -102,7 +109,8 @@ public class VisJsRenderer {
 
 		for (PackageGroupDescriptor descriptor : dependencyGraph.getPackageGroups()) {
 			packageGroupToIdMapping.put(descriptor, idCounter);
-			nodes.add(new Node(idCounter, descriptor.getName(), descriptor.getPackageMatchPattern(), descriptor.getColor()));
+			nodes.add(new Node(idCounter, descriptor.getName(), descriptor.getPackageMatchPattern(), descriptor.getColor(),
+					descriptor instanceof SubModuleDescriptor ? Node.Type.SUB_MODULE : Node.Type.EXTERNAL_FUNCTIONALITY));
 			idCounter++;
 		}
 
@@ -125,8 +133,8 @@ public class VisJsRenderer {
 			final VisJsJson data = serialize(dependencyGraph);
 
 			final String html = readTemplateContent(VisJsRenderer.class.getResourceAsStream(TEMPLATE_FILE))
-					.replace("${nodes-array}", data.getNodeDataSet())
-					.replace("${edges-array}", data.getEdgeDataSet());
+					.replace("/*{nodes-array}*/", data.getNodeDataSet())
+					.replace("/*{edges-array}*/", data.getEdgeDataSet());
 
 			Files.write(outputFile.toPath(), html.getBytes("UTF8"));
 		} catch (IOException ex) {

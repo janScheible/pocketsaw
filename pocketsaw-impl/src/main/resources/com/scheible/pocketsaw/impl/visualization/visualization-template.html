@@ -12,30 +12,42 @@
 				padding: 0px;
 				overflow: hidden;
 			}
-			#mynetwork {
+			#dependency-graph {
 				width: 100vw;
 				height: 100vh;
-				border: 1px solid lightgray;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="mynetwork"></div>
+		<div style="position: absolute; z-index: 20000; background-color: #eeeeee; border: 5px solid #eeeeee;">
+			<div>
+				<input type="checkbox" id="include-external-functionalities" name="include-external-functionalities" checked />
+				<label for="include-external-functionalities">Include external functionalities</label>
+			</div>
+		</div>
+		
+		<div id="dependency-graph"></div>
 
 		<script type="text/javascript">
+			var includeExternalFunctionalitiesEl = document.getElementById('include-external-functionalities');
+			
 			var data = {
-				nodes: new vis.DataSet(${nodes-array}),
-				edges: new vis.DataSet(${edges-array})
+				nodes: new vis.DataSet(/*{nodes-array}*/),
+				edges: new vis.DataSet(/*{edges-array}*/)
 			};
+			
+			data.nodes =  new vis.DataView(data.nodes, {
+				filter: function (node) {
+					return node.type === "SUB_MODULE" || includeExternalFunctionalitiesEl.checked;
+				}
+			});			
+			includeExternalFunctionalitiesEl.addEventListener('change', function(event) {
+				data.nodes.refresh();
+			});				
+			
 			var options = {
-				/*
-                layout: {
-                    hierarchical: {
-                        direction: 'UD'
-                    }
-                }*/
             };
-			var network = new vis.Network(document.getElementById('mynetwork'), data, options);
+			var dependecyGraph = new vis.Network(document.getElementById('dependency-graph'), data, options);
 		</script>
 	</body>
 </html>
