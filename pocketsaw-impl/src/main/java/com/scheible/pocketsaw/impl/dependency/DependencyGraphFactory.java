@@ -17,7 +17,7 @@ import com.scheible.pocketsaw.impl.matching.UnmatchedPackageException;
  * @author sj
  */
 public class DependencyGraphFactory {
-
+	
 	public static DependencyGraph create(PackageDependecies codePackageDependencies, Set<SubModuleDescriptor> subModules,
 			Set<ExternalFunctionalityDescriptor> externalFunctionalities) {
 		Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> descriptorDependecies = calcDescriptorDependencies(subModules);
@@ -27,14 +27,11 @@ public class DependencyGraphFactory {
 
 		Set<Dependency> allDependencies = new HashSet<>();
 		subModules.forEach(subModule -> {
-			Set<PackageGroupDescriptor> descriptorUsed = descriptorDependecies.containsKey(subModule) 
-					? descriptorDependecies.get(subModule) : new HashSet<>();
-			Set<PackageGroupDescriptor> codeUsed = codeDependecies.get(subModule);
+			Set<PackageGroupDescriptor> descriptorUsed = descriptorDependecies.computeIfAbsent(subModule, (key) -> new HashSet<>());
+			Set<PackageGroupDescriptor> codeUsed =  codeDependecies.computeIfAbsent(subModule, (key) -> new HashSet<>());
 			
-			Set<PackageGroupDescriptor> allUsed = descriptorUsed != null ? new HashSet<>(descriptorUsed) : new HashSet<>();
-			if (codeUsed != null) {
-				allUsed.addAll(codeUsed);
-			}
+			Set<PackageGroupDescriptor> allUsed = new HashSet<>(descriptorUsed);
+			allUsed.addAll(codeUsed);
 			
 			allUsed.forEach(used -> {
 				allDependencies.add(new Dependency(subModule, used, descriptorUsed.contains(used), codeUsed.contains(used)));
