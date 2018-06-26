@@ -66,7 +66,7 @@ and
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.3</version>
     <scope>test</scope>
 </dependency>
 ```
