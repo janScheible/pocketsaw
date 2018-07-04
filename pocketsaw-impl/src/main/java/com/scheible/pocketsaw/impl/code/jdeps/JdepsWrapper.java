@@ -3,6 +3,7 @@ package com.scheible.pocketsaw.impl.code.jdeps;
 import com.scheible.pocketsaw.impl.code.DependencyFilter;
 import com.scheible.pocketsaw.impl.code.PackageDependecies;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  *
@@ -48,7 +50,17 @@ public class JdepsWrapper {
 
 	public static PackageDependecies run(final String relativeClassesDirectory, DependencyFilter dependencyFilter) {
 		try {
-			final Process process = new ProcessBuilder("jdeps", "-v", relativeClassesDirectory).redirectErrorStream(true).start();
+			final Predicate<String> isNotEmpty = str -> str != null && !str.trim().isEmpty();
+
+			final String envJavaHome = System.getenv("JAVA_HOME");
+			final String propJavaHome = System.getProperty("java.home");
+
+			final String jdepsDirectory = isNotEmpty.test(envJavaHome) ? envJavaHome + File.separator + "bin" + File.separator
+					: isNotEmpty.test(propJavaHome) ? propJavaHome + File.separator + ".." + File.separator + "bin" + File.separator
+					: "";
+
+			final Process process = new ProcessBuilder(jdepsDirectory + "jdeps", "-v", relativeClassesDirectory)
+					.redirectErrorStream(true).directory(null).start();
 			List<String> lines = new ArrayList<>();
 
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF8"))) {
