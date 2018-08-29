@@ -5,12 +5,12 @@
 	<parent>
 		<artifactId>pocketsaw</artifactId>
 		<groupId>com.scheible.pocketsaw</groupId>
-		<version>1.0.4</version>
+		<version>1.0.5-SNAPSHOT</version>
 	</parent>
 
 	<groupId>com.scheible.pocketsaw.impl</groupId>
 	<artifactId>pocketsaw-impl</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
 	<name>Pocketsaw Impl</name>
@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>com.scheible.pocketsaw.api</groupId>
 			<artifactId>pocketsaw-api</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
