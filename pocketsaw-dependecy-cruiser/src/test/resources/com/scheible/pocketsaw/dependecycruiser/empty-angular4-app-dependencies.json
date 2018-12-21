@@ -1,0 +1,101 @@
+{
+	"_source": "generated from https://github.com/angular/quickstart",
+    "modules": [
+        {
+            "source": "src/app/app.component.spec.ts",
+            "dependencies": [
+                {
+                    "resolved": "src/app/app.component.ts",
+                    "coreModule": false,
+                    "followable": true,
+                    "couldNotResolve": false,
+                    "dependencyTypes": [
+                        "local"
+                    ],
+                    "module": "./app.component",
+                    "moduleSystem": "es6",
+                    "matchesDoNotFollow": false,
+                    "valid": true
+                }
+            ],
+            "valid": true
+        },
+        {
+            "source": "src/app/app.component.ts",
+            "dependencies": [],
+            "valid": true
+        },
+        {
+            "source": "src/app/app.module.ts",
+            "dependencies": [
+                {
+                    "resolved": "src/app/app.component.ts",
+                    "coreModule": false,
+                    "followable": true,
+                    "couldNotResolve": false,
+                    "dependencyTypes": [
+                        "local"
+                    ],
+                    "module": "./app.component",
+                    "moduleSystem": "es6",
+                    "matchesDoNotFollow": false,
+                    "valid": true
+                }
+            ],
+            "valid": true
+        },
+        {
+            "source": "src/main.ts",
+            "dependencies": [
+                {
+                    "resolved": "src/app/app.module.ts",
+                    "coreModule": false,
+                    "followable": true,
+                    "couldNotResolve": false,
+                    "dependencyTypes": [
+                        "local"
+                    ],
+                    "module": "./app/app.module",
+                    "moduleSystem": "es6",
+                    "matchesDoNotFollow": false,
+                    "valid": true
+                }
+            ],
+            "valid": true
+        },
+        {
+            "source": "src/systemjs-angular-loader.js",
+            "dependencies": [],
+            "valid": true
+        },
+        {
+            "source": "src/systemjs.config.extras.js",
+            "dependencies": [],
+            "valid": true
+        },
+        {
+            "source": "src/systemjs.config.js",
+            "dependencies": [],
+            "valid": true
+        }
+    ],
+    "summary": {
+        "violations": [],
+        "error": 0,
+        "warn": 0,
+        "info": 0,
+        "totalCruised": 7,
+        "optionsUsed": {
+            "outputTo": "-",
+            "exclude": "^node_modules",
+            "moduleSystems": [
+                "amd",
+                "cjs",
+                "es6"
+            ],
+            "outputType": "json",
+            "tsPreCompilationDeps": true,
+            "preserveSymlinks": false
+        }
+    }
+}

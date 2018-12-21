@@ -1,4 +1,4 @@
-package com.scheible.pocketsaw.impl.descriptor;
+package com.scheible.pocketsaw.impl.descriptor.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;

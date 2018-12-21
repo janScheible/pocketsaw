@@ -1,0 +1,14 @@
+{
+    "submodules": [
+        {
+            "name": "SubModule",
+            "packageName": "project.first",
+            "uses": []
+        },
+        {
+            "name": "SubModule",
+            "packageName": "project.second.child",
+            "uses": []
+        }
+	]
+}

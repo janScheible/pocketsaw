@@ -1,6 +1,5 @@
 package com.scheible.pocketsaw.impl.descriptor;
 
-import com.scheible.pocketsaw.api.ExternalFunctionality;
 import java.util.Objects;
 
 /**
@@ -15,24 +14,6 @@ public class ExternalFunctionalityDescriptor implements PackageGroupDescriptor {
 	private final String packageMatchPattern;
 	private final String color;
 	
-	public static ExternalFunctionalityDescriptor fromAnnotatedClass(Class<?> externalFunctionalityAnnotatedClass) {
-		ExternalFunctionality annotation = getAnnotation(externalFunctionalityAnnotatedClass);
-		
-		return new ExternalFunctionalityDescriptor(externalFunctionalityAnnotatedClass.getName(), 
-				PackageGroupNameProvider.getName(externalFunctionalityAnnotatedClass), 
-				annotation.packageMatchPattern(), annotation.color());
-	}
-	
-	static ExternalFunctionality getAnnotation(Class<?> externalFunctionalityAnnotatedClass) {
-		ExternalFunctionality annotation = externalFunctionalityAnnotatedClass.getDeclaredAnnotation(ExternalFunctionality.class);
-		
-		if (annotation == null) {
-			throw new IllegalArgumentException("No @" + ExternalFunctionality.class.getSimpleName()
-					+ " was found on class '" + externalFunctionalityAnnotatedClass.getName() + "'!");
-		} else {
-			return annotation;
-		}
-	}
 
 	public ExternalFunctionalityDescriptor(String id, String name, String packageMatchPattern, String color) {
 		this.id = id;

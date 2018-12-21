@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+	<action>
+		<actionName>CUSTOM-Pocketsaw CLI</actionName>
+		<displayName>Pocketsaw CLI</displayName>
+		<goals>
+			<goal>exec:exec@pocketsaw</goal>
+		</goals>
+	</action>
+</actions>

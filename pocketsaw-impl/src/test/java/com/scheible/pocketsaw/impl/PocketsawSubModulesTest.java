@@ -1,6 +1,6 @@
 package com.scheible.pocketsaw.impl;
 
-import com.scheible.pocketsaw.impl.descriptor.SpringClasspathScanner;
+import com.scheible.pocketsaw.impl.descriptor.annotation.SpringClasspathScanner;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.BeforeClass;
 import org.junit.Test;

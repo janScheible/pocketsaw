@@ -3,7 +3,7 @@ package com.scheible.pocketsaw.impl.code;
 import com.scheible.pocketsaw.api.SubModule;
 
 /**
- * Deals with code/package dependecies.
+ * Deals with code/package dependencies.
  * 
  * @author sj
  */

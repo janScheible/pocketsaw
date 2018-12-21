@@ -15,7 +15,7 @@ class PackageGroupColorProvider {
 			Method method = SubModule.class.getMethod("color");
 			return (String) method.getDefaultValue();
 		} catch (NoSuchMethodException | SecurityException ex) {
-			throw new IllegalStateException();
+			throw new IllegalStateException(ex);
 		}
 	}
 
@@ -24,7 +24,7 @@ class PackageGroupColorProvider {
 			Method method = ExternalFunctionality.class.getMethod("color");
 			return (String) method.getDefaultValue();
 		} catch (NoSuchMethodException | SecurityException ex) {
-			throw new IllegalStateException();
+			throw new IllegalStateException(ex);
 		}
 	}
 }

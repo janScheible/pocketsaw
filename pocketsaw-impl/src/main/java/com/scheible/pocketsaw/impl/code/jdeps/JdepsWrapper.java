@@ -1,11 +1,12 @@
 package com.scheible.pocketsaw.impl.code.jdeps;
 
 import com.scheible.pocketsaw.impl.code.DependencyFilter;
-import com.scheible.pocketsaw.impl.code.PackageDependecies;
+import com.scheible.pocketsaw.impl.code.PackageDependencies;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,8 +22,8 @@ import java.util.function.Predicate;
  */
 public class JdepsWrapper {
 
-	private static PackageDependecies parseOutput(final List<String> lines, DependencyFilter dependencyFilter) {
-		Map<String, Set<String>> packageDependecies = new HashMap<>();
+	private static PackageDependencies parseOutput(final List<String> lines, DependencyFilter dependencyFilter) {
+		Map<String, Set<String>> packageDependencies = new HashMap<>();
 
 		final Function<String, String> packageNameExtractor = className -> {
 			return className.substring(0, className.lastIndexOf('.'));
@@ -39,16 +40,16 @@ public class JdepsWrapper {
 			final String dependentClass = lineParts[1].trim().split(" ")[0];
 			final String dependentPackageName = packageNameExtractor.apply(dependentClass);
 
-			Set<String> dependentClasses = packageDependecies.computeIfAbsent(packageName, key -> new HashSet<>());
+			Set<String> dependentClasses = packageDependencies.computeIfAbsent(packageName, key -> new HashSet<>());
 			if (!packageName.equals(dependentPackageName) && !dependencyFilter.apply(className, dependentClass)) {
 				dependentClasses.add(dependentPackageName);
 			}
 		}
 
-		return new PackageDependecies(packageDependecies);
+		return new PackageDependencies(packageDependencies);
 	}
 
-	public static PackageDependecies run(final String relativeClassesDirectory, DependencyFilter dependencyFilter) {
+	public static PackageDependencies run(final String relativeClassesDirectory, DependencyFilter dependencyFilter) {
 		try {
 			final Predicate<String> isNotEmpty = str -> str != null && !str.trim().isEmpty();
 
@@ -82,7 +83,9 @@ public class JdepsWrapper {
 			}
 
 			return parseOutput(lines, dependencyFilter);
-		} catch (IOException | InterruptedException ex) {
+		} catch (IOException ex) {
+			throw new UncheckedIOException(ex);
+		} catch (InterruptedException ex) {
 			throw new IllegalStateException(ex);
 		}
 	}

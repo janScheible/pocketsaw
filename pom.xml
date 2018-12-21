@@ -4,7 +4,7 @@
 
 	<groupId>com.scheible.pocketsaw</groupId>
 	<artifactId>pocketsaw</artifactId>
-	<version>1.0.5</version>
+	<version>1.1.0</version>
 
 	<packaging>pom</packaging>
 	<name>Pocketsaw</name>
@@ -27,6 +27,8 @@
 	<modules>
 		<module>pocketsaw-api</module>
 		<module>pocketsaw-impl</module>
+		<module>pocketsaw-dependecy-cruiser</module>
+		<module>pocketsaw-cli-exec</module>
 	</modules>
 
 	<scm>
@@ -39,6 +41,21 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.11.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>

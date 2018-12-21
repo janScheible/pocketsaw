@@ -1,4 +1,4 @@
-package com.scheible.pocketsaw.impl.descriptor;
+package com.scheible.pocketsaw.impl.descriptor.annotation;
 
 /**
  *

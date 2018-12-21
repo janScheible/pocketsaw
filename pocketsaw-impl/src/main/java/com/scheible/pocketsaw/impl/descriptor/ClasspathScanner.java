@@ -1,30 +1,22 @@
 package com.scheible.pocketsaw.impl.descriptor;
 
-import static java.util.Collections.unmodifiableSet;
-import java.util.Set;
-import java.util.function.Predicate;
-
 /**
  *
  * @author sj
+ * @deprecated As of release 1.1.0, moved to
+ * {@link com.scheible.pocketsaw.impl.descriptor.annotation.ClasspathScanner}. Please switch to that class as an
+ * prepartion for version 2.0.
  */
+@Deprecated
 public abstract class ClasspathScanner {
 	
-	protected static final Predicate<String> TEST_CLASS_FILTER = className -> !(className.endsWith("Test") || className.contains("Test$"));
-	
-	private final Set<String> subModuleAnnotatedClassNames;
-	private final Set<String> externalFunctionalityAnnotatedClassNames;
+	private final Class<?> basePackageClass;
 
-	protected ClasspathScanner(Set<String> subModuleAnnotatedClassNames, Set<String> externalFunctionalityAnnotatedClassNames) {
-		this.subModuleAnnotatedClassNames = unmodifiableSet(subModuleAnnotatedClassNames);
-		this.externalFunctionalityAnnotatedClassNames = unmodifiableSet(externalFunctionalityAnnotatedClassNames);
+	protected ClasspathScanner(Class<?> basePackageClass) {
+		this.basePackageClass = basePackageClass;
 	}
 
-	public Set<String> getExternalFunctionalityAnnotatedClassNames() {
-		return externalFunctionalityAnnotatedClassNames;
-	}
-
-	public Set<String> getSubModuleAnnotatedClassNames() {
-		return subModuleAnnotatedClassNames;
+	public Class<?> getBasePackageClass() {
+		return basePackageClass;
 	}
 }

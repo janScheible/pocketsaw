@@ -16,6 +16,7 @@ import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.JsonObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.stream.Collectors;
 
@@ -138,7 +139,7 @@ public class VisJsRenderer {
 
 			Files.write(outputFile.toPath(), html.getBytes("UTF8"));
 		} catch (IOException ex) {
-			throw new IllegalStateException("Error while writing the graph HTML to '" + outputFile + "'!", ex);
+			throw new UncheckedIOException("Error while writing the graph HTML to '" + outputFile + "'!", ex);
 		}
 	}
 

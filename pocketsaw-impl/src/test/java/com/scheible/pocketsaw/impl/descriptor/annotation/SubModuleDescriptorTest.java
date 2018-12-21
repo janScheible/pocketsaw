@@ -1,10 +1,9 @@
-package com.scheible.pocketsaw.impl.descriptor;
+package com.scheible.pocketsaw.impl.descriptor.annotation;
 
-import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
-import com.scheible.pocketsaw.impl.descriptor.PackageGroupNameProvider;
 import com.scheible.pocketsaw.api.ExternalFunctionality;
 import com.scheible.pocketsaw.api.SubModule;
-import static com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptorTest.SUB_MODULE_INCLUDE_SUB_PACKAGES;
+import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
+import static com.scheible.pocketsaw.impl.descriptor.annotation.SubModuleDescriptorTest.SUB_MODULE_INCLUDE_SUB_PACKAGES;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
@@ -35,7 +34,7 @@ public class SubModuleDescriptorTest {
 
 	@Test
 	public void fromAnnotatedClass() {
-		SubModuleDescriptor descriptor = SubModuleDescriptor.fromAnnotatedClass(TestSubModule.class);
+		SubModuleDescriptor descriptor = AnnotationDescriptorInfoFactory.fromAnnotatedSubModuleClass(TestSubModule.class);
 
 		assertThat(descriptor.getName()).isEqualTo(PackageGroupNameProvider.getName(TestSubModule.class));
 		assertThat(descriptor.getUsedExternalFunctionalities()).hasSize(1);
@@ -44,7 +43,7 @@ public class SubModuleDescriptorTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void fromClassWithoutAnnotation() {
-		SubModuleDescriptor.fromAnnotatedClass(SubModuleDescriptorTest.class);
+		AnnotationDescriptorInfoFactory.fromAnnotatedSubModuleClass(SubModuleDescriptorTest.class);
 	}
 
 	@SubModule(uses = {SubModuleDescriptorTest.class})
@@ -54,7 +53,7 @@ public class SubModuleDescriptorTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void fromClassWithNotAnnotatedUsed() {
-		SubModuleDescriptor.fromAnnotatedClass(TestSubModuleWithNotAnnotatedUsed.class);
+		AnnotationDescriptorInfoFactory.fromAnnotatedSubModuleClass(TestSubModuleWithNotAnnotatedUsed.class);
 	}
 	
 	@SubModule(value = {TestSubModule.class}, uses = {TestSubModule.class})
@@ -64,6 +63,6 @@ public class SubModuleDescriptorTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void fromSubModuleWithValueAndUses() {
-		SubModuleDescriptor.fromAnnotatedClass(TestSubModuleWithValueAndUses.class);
+		AnnotationDescriptorInfoFactory.fromAnnotatedSubModuleClass(TestSubModuleWithValueAndUses.class);
 	}	
 }

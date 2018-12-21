@@ -1,0 +1,15 @@
+{
+    "submodules": [
+        {
+            "name": "First",
+            "packageName": "project.first",
+            "includeSubPackages": false,
+			"color": "red"
+        },
+        {
+            "name": "FirstChild",
+            "packageName": "project.first.child",
+            "uses": ["First"]
+        }
+	]
+}

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.scheible.pocketsaw.cliexec</groupId>
+	<artifactId>pocketsaw-cli-exec</artifactId>
+	<version>1.0.0</version>
+
+	<packaging>jar</packaging>
+	<name>Pocketsaw CLI Exec</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.scheible.pocketsaw.impl</groupId>
+			<artifactId>pocketsaw-impl</artifactId>
+			<version>1.1.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.scheible.pocketsaw.dependencycruiser</groupId>
+			<artifactId>pocketsaw-dependency-cruiser</artifactId>
+			<version>1.0.0</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<executions>
+					<execution>
+						<id>pocketsaw</id>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<phase>verify</phase>
+						<configuration>
+							<executable>java</executable>
+							<classpathScope>test</classpathScope>
+							<arguments>
+								<argument>-classpath</argument>
+								<classpath/>
+								<argument>com.scheible.pocketsaw.impl.cli.Main</argument>
+								<argument>${project.basedir}/sub-modules.json</argument>
+								<argument>${project.basedir}/dependencies.json</argument>
+								<argument>internal-nop-package-dependency-source</argument>
+								<argument>${project.basedir}/target/pocketsaw-dependency-graph.html</argument>
+								<argument>--ignore-illegal-code-dependencies</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>				
+			</plugin>
+		</plugins>
+	</build>
+</project>

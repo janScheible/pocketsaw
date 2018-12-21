@@ -1,35 +1,20 @@
 package com.scheible.pocketsaw.impl.descriptor;
 
-import com.scheible.pocketsaw.api.ExternalFunctionality;
-import com.scheible.pocketsaw.api.SubModule;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
-import java.lang.annotation.Annotation;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
- * Required the Fast Classpath Scanner to be on the classpath.
  *
  * @author sj
+ * @deprecated As of release 1.1.0, moved to
+ * {@link com.scheible.pocketsaw.impl.descriptor.annotation.FastClasspathScanner}. Please switch to that class as an
+ * prepartion for version 2.0.
  */
+@Deprecated
 public class FastClasspathScanner extends ClasspathScanner {
 
-	private FastClasspathScanner(Set<String> subModuleAnnotatedClassNames, Set<String> externalFunctionalityAnnotatedClassNames) {
-		super(subModuleAnnotatedClassNames, externalFunctionalityAnnotatedClassNames);
+	private FastClasspathScanner(Class<?> basePackageClass) {
+		super(basePackageClass);
 	}
 
 	public static ClasspathScanner create(Class<?> basePackageClass) {
-		ScanResult scanResult = new io.github.lukehutch.fastclasspathscanner.FastClasspathScanner(basePackageClass.getPackage().getName()).scan();
-
-		return new FastClasspathScanner(findClasses(scanResult, SubModule.class),
-				findClasses(scanResult, ExternalFunctionality.class));
-
+		return new FastClasspathScanner(basePackageClass);
 	}
-
-	private static <A extends Annotation> Set<String> findClasses(ScanResult scanResult,
-			Class<A> annotationClass) {
-		return scanResult.getNamesOfClassesWithAnnotation(annotationClass).stream()
-				.filter(TEST_CLASS_FILTER).collect(Collectors.toSet());
-	}
-
 }

@@ -1,9 +1,10 @@
 [adding-uses-workflow]: adding-uses-workflow.gif "Adding of uses relations"
 [pocketsaw-package-group-structure]: adding-uses-workflow-all-uses.png "Pocketsaw package group structure"
+[angular-tour-of-heroes-dependencies]: angular-tour-of-heroes-dependencies.png "Angular Tour of Heros Dependencies"
 
 # Pocketsaw
 
-Compile time sub-module system, aimed at package group dependency organization within a Maven project resp. Java 9 module.
+Compile time sub-module system, aimed at package group dependency organization within a Maven project resp. Java 9 module (and even more, see for example [Using Pocketsaw in an Angular project](#using-pocketsaw-in-an-angular-project)).
 
 ## Motivation
 
@@ -48,7 +49,7 @@ cd pocketsaw
 mvn install
 ```
 
-## Workflow for using Pocketsaw in a project
+## Workflow for using Pocketsaw in a Java project
 
 ### Adding of Maven dependency
 
@@ -65,7 +66,7 @@ and
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.0.5</version>
+    <version>1.1.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -121,7 +122,7 @@ The following conventions might be used:
   package com.scheible.pocketsaw.impl.visualization;
   
   /**
-   * Sub module for visualizing the dependency graph.
+   * Sub-module for visualizing the dependency graph.
    */
   @SubModule
   public class VisualizationSubModule { 
@@ -178,6 +179,117 @@ The approach described in [Matching of all packages with sub-modules and externa
 
 It might also fail if one of the asserts are vialoted.
 In this case either the code has to be fixed to remove the not allowed code dependency or an additional usage relation has to be added like described in [Definition of the allowed sub-module dependencies](#definition-of-the-allowed-sub-module-dependencies).
+
+## Using Pocketsaw in an Angular project
+
+Since version 1.1.0 of Pocketsaw in addition to Java-only projects it can be used for asserting the sub-module structure of projects containing an Angular frontend as well.
+
+In the following the structure of an [Angular Tour Of Heroes](https://github.com/rpoitras/angular-tour-of-heroes) example is visualized:
+
+![angular-tour-of-heroes-dependencies]
+
+The good news is that the "children" of `App` have no dependencies with their siblings at all.
+Also, the two-way relation between them and `App` could perhaps easily be resolved by moving `HeroService` and `MessageService` to dedicated sub-directories and therefore sub-modules.
+
+### Sub-modules descriptors
+
+For non-Java usage, currently the sub-modules descriptors have to be read from a JSON file (external functionalities are not yet supported).
+The file format looks like this:
+
+```json
+{
+    "submodules": [
+        {
+            "name": "First",
+            "packageName": "project.first",
+            "includeSubPackages": false,
+            "color": "red"
+        }, {
+            "name": "FirstChild",
+            "packageName": "project.first.child",
+            "uses": ["First"]
+        }
+    ]
+}
+```
+- `uses` with `[]` as default
+- `includeSubPackages` with default same as `@SubModule#includeSubPackages` (`true`)
+- `color` with default same as `@SubModule#color` (`orange`)
+
+### Third-party dependencies information source
+
+To add an third-party dependency information source the interface [`PackageDependencySource`](tree/master/pocketsaw-impl/src/main/java/com/scheible/pocketsaw/impl/code/PackageDependencySource.java) has to be implemented in an separated Maven project.
+Pocketsaw then uses JDK's `ServiceLoader` to find and load the dependency source.
+Therefore a no-args constructor is mandatory.
+For an example of such an implementation see the one of [Dependency Cruiser](tree/master/pocketsaw-dependecy-cruiser).
+
+#### Dependency Cruiser support
+
+The first step is to install Dependency Cruiser with `npm install --save-dev dependency-cruiser`.
+Next it is easiest to add the following to the `scripts` section of the `package.json`:
+```json
+"dependencies": "dependency-cruise --ts-pre-compilation-deps -T json --exclude \"^node_modules\" src > dependencies.json"
+```
+
+On the Maven side the dependency `com.scheible.pocketsaw.dependencycruiser:pocketsaw-dependency-cruiser` has to be added.
+
+**NOTE**: For now the reported dependencies are limited to TypeScript files excluding all `*.spec.ts`.
+
+### CLI 
+
+Since version 1.1.0 there is CLI support available via the `com.scheible.pocketsaw.impl.cli.Main` class.
+
+```
+usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser} <pocketsaw-dependency-graph.html> 
+           [--ignore-illegal-code-dependencies] [--verbose]
+```
+
+#### Maven usage
+
+To automated Pocketsaw execution in a Maven project with an Angular frontend the `exec-maven-plugin` can be use like this:
+```
+<plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>exec-maven-plugin</artifactId>
+	<version>1.6.0</version>
+	<executions>
+		<execution>
+			<id>pocketsaw</id>
+			<goals>
+				<goal>exec</goal>
+			</goals>
+			<phase>verify</phase>
+			<configuration>
+				<executable>java</executable>
+				<classpathScope>test</classpathScope>
+				<arguments>
+					<argument>-classpath</argument>
+					<classpath/>
+					<argument>com.scheible.pocketsaw.impl.cli.Main</argument>
+					<argument>${project.basedir}/pocketsaw-sub-modules.json</argument>
+					<argument>${project.basedir}/target/dependency-cruiser-dependencies.json</argument>
+					<argument>dependency-cruiser</argument>
+					<argument>${project.basedir}/target/pocketsaw-dependency-graph.html</argument>
+					<argument>--verbose</argument>
+				</arguments>
+			</configuration>
+		</execution>
+	</executions>				
+</plugin>
+```
+
+#### CLI exit codes
+
+The CLI uses the following exit codes to allow easy scripting:
+| exit code | description                                         |
+|-----------|-----------------------------------------------------|
+| -1        | unexpected fatal error                              |
+| 1         | no package dependency source was found on classpath |
+| 2         | not enough arguments                                |
+| 3         | something wrong with an argument                    |
+| 4         | found a descriptor cycle                           |
+| 5         | found a code cycle                                 |
+| 6         | found illegal code dependencies                     |
 
 ## Shaded dependencies
 

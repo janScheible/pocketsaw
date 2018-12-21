@@ -17,7 +17,7 @@ import org.junit.Test;
 public class CycleDetectorTest {
 
 	@Test
-	public void testSomeMethod() {
+	public void testBasicCycleDetection() {
 		SubModuleDescriptor a = new SubModuleDescriptor("a", "a", "a", true, new HashSet<>(), new HashSet<>());
 		SubModuleDescriptor b = new SubModuleDescriptor("b", "b", "b", true, new HashSet<>(), new HashSet<>());
 		SubModuleDescriptor c = new SubModuleDescriptor("c", "c", "c", true, new HashSet<>(), new HashSet<>());

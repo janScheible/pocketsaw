@@ -1,6 +1,6 @@
 package com.scheible.pocketsaw.impl.dependency;
 
-import com.scheible.pocketsaw.impl.code.PackageDependecies;
+import com.scheible.pocketsaw.impl.code.PackageDependencies;
 import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.CODE;
 import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.DESCRIPTOR;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
@@ -26,7 +26,7 @@ public class DependencyGraphFactoryTest {
 		SubModuleDescriptor a = new SubModuleDescriptor("a", "a", "a", false, "red", new HashSet<>(Arrays.asList("b")), new HashSet<>());
 		SubModuleDescriptor b = new SubModuleDescriptor("b", "b", "b", false, "red", new HashSet<>(), new HashSet<>());
 
-		DependencyGraph graph = DependencyGraphFactory.create(new PackageDependecies(new HashMap<>()), new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
+		DependencyGraph graph = DependencyGraphFactory.create(new PackageDependencies(new HashMap<>()), new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
 
 		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, DESCRIPTOR));
 	}
@@ -39,7 +39,7 @@ public class DependencyGraphFactoryTest {
 		Map<String, Set<String>> codePackageDependencies = new HashMap<>();
 		codePackageDependencies.put("a", new HashSet<>(Arrays.asList("b")));
 
-		DependencyGraph graph = DependencyGraphFactory.create(new PackageDependecies(codePackageDependencies), new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
+		DependencyGraph graph = DependencyGraphFactory.create(new PackageDependencies(codePackageDependencies), new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
 
 		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, CODE));
 	}

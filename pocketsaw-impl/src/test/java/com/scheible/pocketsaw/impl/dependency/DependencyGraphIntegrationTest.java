@@ -1,8 +1,6 @@
 package com.scheible.pocketsaw.impl.dependency;
 
-import com.scheible.pocketsaw.impl.dependency.DependencyGraphFactory;
-import com.scheible.pocketsaw.impl.dependency.DependencyGraph;
-import com.scheible.pocketsaw.impl.code.PackageDependecies;
+import com.scheible.pocketsaw.impl.code.PackageDependencies;
 import com.scheible.pocketsaw.impl.descriptor.DescriptorInfo;
 import com.scheible.pocketsaw.impl.descriptor.ExternalFunctionalityDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
@@ -18,7 +16,7 @@ import org.junit.Test;
 
 public class DependencyGraphIntegrationTest {
 	
-	private PackageDependecies getPackageDependecies() {
+	private PackageDependencies getPackageDependencies() {
 		Map<String, Set<String>> deps = new HashMap<>();
 
 		deps.put("com.scheible.javasubmodules.sample.adapter.first.FirstAdapter",
@@ -46,7 +44,7 @@ public class DependencyGraphIntegrationTest {
 		deps.put("com.scheible.javasubmodules.sample.store.second.SecondStore",
 				new HashSet<>());
 
-		return new PackageDependecies(deps);
+		return new PackageDependencies(deps);
 	}
 
 	private DescriptorInfo getPackageGroups() {
@@ -71,10 +69,10 @@ public class DependencyGraphIntegrationTest {
 
 	@Test
 	public void testDependencyGraph() throws IOException {
-		final PackageDependecies packageDependecies = getPackageDependecies();
+		final PackageDependencies packageDependencies = getPackageDependencies();
 		final DescriptorInfo descriptorInfo = getPackageGroups();
 		
-		final DependencyGraph dependencyGraph = DependencyGraphFactory.create(packageDependecies,
+		final DependencyGraph dependencyGraph = DependencyGraphFactory.create(packageDependencies,
 				descriptorInfo.getSubModules(), descriptorInfo.getExternalFunctionalities());		
 		
 		assertThat(dependencyGraph.getAnyDescriptorCycle()).isEmpty();
@@ -83,7 +81,7 @@ public class DependencyGraphIntegrationTest {
 				.allMatch((dependency) -> dependency.getSource().getId().equals("5")
 				&& dependency.getTarget().getId().equals("4"));
 		
-		// VisJsRenderer.render(dependencyGraph, Paths.getPackageDependecies("./target/java-project-sub-modules.html").toFile());
+		// VisJsRenderer.render(dependencyGraph, Paths.getPackageDependencies("./target/java-project-sub-modules.html").toFile());
 	}
 
 	private Set<ExternalFunctionalityDescriptor> newHashSet(ExternalFunctionalityDescriptor... externalFunctionalities) {
