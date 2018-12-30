@@ -10,7 +10,7 @@
 
 	<groupId>com.scheible.pocketsaw.dependencycruiser</groupId>
 	<artifactId>pocketsaw-dependency-cruiser</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 
 	<packaging>jar</packaging>
 	<name>Pocketsaw Dependency Cruiser Support</name>
