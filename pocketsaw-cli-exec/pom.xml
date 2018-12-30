@@ -2,6 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<parent>
+		<artifactId>pocketsaw</artifactId>
+		<groupId>com.scheible.pocketsaw</groupId>
+		<version>1.1.1</version>
+	</parent>
+
 	<groupId>com.scheible.pocketsaw.cliexec</groupId>
 	<artifactId>pocketsaw-cli-exec</artifactId>
 	<version>1.0.0</version>
@@ -13,7 +19,7 @@
 		<dependency>
 			<groupId>com.scheible.pocketsaw.impl</groupId>
 			<artifactId>pocketsaw-impl</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -23,7 +29,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -33,16 +39,16 @@
 				<executions>
 					<execution>
 						<id>pocketsaw</id>
+						<phase>verify</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
-						<phase>verify</phase>
 						<configuration>
 							<executable>java</executable>
 							<classpathScope>test</classpathScope>
 							<arguments>
 								<argument>-classpath</argument>
-								<classpath/>
+								<classpath></classpath>
 								<argument>com.scheible.pocketsaw.impl.cli.Main</argument>
 								<argument>${project.basedir}/sub-modules.json</argument>
 								<argument>${project.basedir}/dependencies.json</argument>
@@ -52,7 +58,7 @@
 							</arguments>
 						</configuration>
 					</execution>
-				</executions>				
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
