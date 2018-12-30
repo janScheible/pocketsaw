@@ -218,10 +218,10 @@ The file format looks like this:
 
 ### Third-party dependencies information source
 
-To add an third-party dependency information source the interface [`PackageDependencySource`](tree/master/pocketsaw-impl/src/main/java/com/scheible/pocketsaw/impl/code/PackageDependencySource.java) has to be implemented in an separated Maven project.
+To add an third-party dependency information source the interface [`PackageDependencySource`](pocketsaw-impl/src/main/java/com/scheible/pocketsaw/impl/code/PackageDependencySource.java) has to be implemented in an separated Maven project.
 Pocketsaw then uses JDK's `ServiceLoader` to find and load the dependency source.
 Therefore a no-args constructor is mandatory.
-For an example of such an implementation see the one of [Dependency Cruiser](tree/master/pocketsaw-dependecy-cruiser).
+For an example of such an implementation see the one of [Dependency Cruiser](pocketsaw-dependecy-cruiser).
 
 #### Dependency Cruiser support
 
@@ -247,7 +247,7 @@ usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser} <poc
 #### Maven usage
 
 To automated Pocketsaw execution in a Maven project with an Angular frontend the `exec-maven-plugin` can be use like this:
-```
+```xml
 <plugin>
 	<groupId>org.codehaus.mojo</groupId>
 	<artifactId>exec-maven-plugin</artifactId>
@@ -281,14 +281,15 @@ To automated Pocketsaw execution in a Maven project with an Angular frontend the
 #### CLI exit codes
 
 The CLI uses the following exit codes to allow easy scripting:
+
 | exit code | description                                         |
 |-----------|-----------------------------------------------------|
 | -1        | unexpected fatal error                              |
 | 1         | no package dependency source was found on classpath |
 | 2         | not enough arguments                                |
 | 3         | something wrong with an argument                    |
-| 4         | found a descriptor cycle                           |
-| 5         | found a code cycle                                 |
+| 4         | found a descriptor cycle                            |
+| 5         | found a code cycle                                  |
 | 6         | found illegal code dependencies                     |
 
 ## Shaded dependencies
