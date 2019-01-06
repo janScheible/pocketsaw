@@ -1,5 +1,6 @@
 [adding-uses-workflow]: adding-uses-workflow.gif "Adding of uses relations"
 [pocketsaw-package-group-structure]: pocketsaw-package-group-structure.png "Pocketsaw package group structure"
+[pocketsaw-layered-sub-modules]: pocketsaw-layered-sub-modules.png "Pocketsaw layered sub-modules"
 [angular-tour-of-heroes-dependencies]: angular-tour-of-heroes-dependencies.png "Angular Tour of Heros Dependencies"
 
 # Pocketsaw
@@ -25,6 +26,12 @@ The gray ones are a special case, they represent the shaded libraries which are 
 In case of a not allowed code dependency there would be a red arrow whilst in case of a defined but not used in the code dependency a gray arrow would be displayed.
 
 ![pocketsaw-package-group-structure]
+
+Since version 1.2.0 there is an additional visualization available.
+In the layered sub modules view all allowed dependencies go from top to bottom.
+Horizontal or bottom to top dependencies are not allowed and marked red.
+
+![pocketsaw-layered-sub-modules]
 
 ## Background
 
@@ -58,7 +65,7 @@ Add
 <dependency>
     <groupId>com.scheible.pocketsaw.api</groupId>
     <artifactId>pocketsaw-api</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 and
@@ -66,7 +73,7 @@ and
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -99,7 +106,7 @@ public class PocketsawSubModulesTest {
     }
 	
     @Test
-        public void todo() {		
+        public void todo() {
     }
 }
 ```

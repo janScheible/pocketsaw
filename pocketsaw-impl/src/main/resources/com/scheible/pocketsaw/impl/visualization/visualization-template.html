@@ -1,53 +1,359 @@
 <!doctype html>
-<html>
-	<head>
-		<title>Pocketsaw dependency graph</title>
+<html lang=en>
 
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<head>
+    <meta charset=utf-8>
+    <title>Pocketsaw dependency graph</title>
 
-		<style type="text/css">
-			html, body {
-				margin: 0px;
-				padding: 0px;
-				overflow: hidden;
-			}
-			#dependency-graph {
-				width: 100vw;
-				height: 100vh;
-			}
-		</style>
-	</head>
-	<body>
-		<div style="position: absolute; z-index: 20000; background-color: #eeeeee; border: 5px solid #eeeeee;">
-			<div>
-				<input type="checkbox" id="include-external-functionalities" name="include-external-functionalities" checked />
-				<label for="include-external-functionalities">Include external functionalities</label>
-			</div>
-		</div>
-		
-		<div id="dependency-graph"></div>
+    <script type="text/javascript" src="https://unpkg.com/@ungap/url-search-params@0.1.2/min.js"></script>
 
-		<script type="text/javascript">
-			var includeExternalFunctionalitiesEl = document.getElementById('include-external-functionalities');
-			
-			var data = {
-				nodes: new vis.DataSet(/*{nodes-array}*/),
-				edges: new vis.DataSet(/*{edges-array}*/)
-			};
-			
-			data.nodes =  new vis.DataView(data.nodes, {
-				filter: function (node) {
-					return node.type === "SUB_MODULE" || includeExternalFunctionalitiesEl.checked;
-				}
-			});			
-			includeExternalFunctionalitiesEl.addEventListener('change', function(event) {
-				data.nodes.refresh();
-			});				
-			
-			var options = {
+    <script>
+        window.pocketsaw = {};
+    </script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+
+    <script id="graph-script">
+        window.pocketsaw.showGraph = function (nodes, edges, includeExternalFunctionalities, useHierarchicalLayout) {
+            var data = {
+                nodes: new vis.DataView(new vis.DataSet(nodes), {
+                    filter: function (node) {
+                        return node.type === "SUB_MODULE" || includeExternalFunctionalities;
+                    }
+                }),
+                edges: new vis.DataSet(edges)
+            }
+            var options = {};
+            if (useHierarchicalLayout) {
+                options.layout = {
+                    randomSeed: undefined,
+                    improvedLayout: true,
+                    hierarchical: { sortMethod: 'directed' }
+                };
+            }
+            var dependecyGraph = new vis.Network(document.getElementById('visualization'), data, options);
+        }
+    </script>
+
+    <style id="graph-style">
+        .graph .not-yet-used {
+            color: red;
+        }
+    </style>
+
+    <script src="https://dagrejs.github.io/project/dagre/v0.7.5/dagre.min.js"></script>
+    <script src="https://unpkg.com/leader-line@1.0.5/leader-line.min.js"></script>
+
+    <script id="layered-sub-modules-script">
+        window.pocketsaw.showLayeredSubModules = function (nodes, edges) {
+            function createDependencies(nodes, edges) {
+                var nodeMapping = {};
+                nodes.forEach(function (node) {
+                    if (node.type === "SUB_MODULE") {
+                        nodeMapping[node.id] = node.label;
+                    }
+                });
+                var dependencies = [];
+                edges.forEach(function (edge) {
+                    var fromLabel = nodeMapping[edge.from], toLabel = nodeMapping[edge.to];
+                    if (fromLabel && toLabel) {
+                        dependencies.push({ from: fromLabel, to: toLabel, weight: edge.label });
+                    }
+                });
+
+                return dependencies;
+            }
+
+            function rowsFromLayeredGraphLayout(dependencies) {
+                var g = new dagre.graphlib.Graph();
+                g.setGraph({});
+                g.graph().ranker = 'longest-path';
+
+                dependencies.forEach(function (dependency) {
+                    g.setEdge(dependency.from, dependency.to, {
+                        weight: dependency.weight
+                    });
+                });
+                g.nodes().forEach(function (node) {
+                    g.setNode(node, {
+                        width: 100,
+                        height: 20
+                    });
+                });
+
+                dagre.layout(g);
+
+                var yNodeMapping = {};
+                g.nodes().forEach(function (v) {
+                    var position = g.node(v);
+                    if (!yNodeMapping[position.y]) {
+                        yNodeMapping[position.y] = [];
+                    }
+                    yNodeMapping[position.y].push(v);
+                });
+
+                var rows = [];
+                Object.keys(yNodeMapping).sort(function (a, b) {
+                    return parseInt(a) - parseInt(b);
+                }).forEach(function (y) {
+                    rows.push(yNodeMapping[y].sort(function (a, b) {
+                        return g.node(a).x - g.node(b).x;
+                    }));
+                });
+                return rows;
+            }
+
+            function createGraph(rows) {
+                var containerEl = document.createElement('div');
+                containerEl.classList.add('container');
+                var parentEl = document.getElementById('visualization');
+                parentEl.classList.add('layered-sub-modules');
+                parentEl.appendChild(containerEl);
+                var level = 0;
+                rows.forEach(function (row) {
+                    var rowEl = document.createElement('div');
+                    rowEl.classList.add('row');
+                    containerEl.appendChild(rowEl);
+                    row.forEach(function (node) {
+                        var cellEl = document.createElement('span');
+                        cellEl.setAttribute('data-node', node);
+                        cellEl.setAttribute('data-level', level);
+                        cellEl.classList.add('cell');
+                        cellEl.innerText = node;
+                        rowEl.appendChild(cellEl);
+                    });
+                    level++;
+                });
+                return containerEl;
+            }
+
+            function clone(obj) {
+                var newObj = (obj instanceof Array) ? [] : {};
+                for (var prop in obj) {
+                    if (typeof obj[prop] === 'object') {
+                        newObj[prop] = clone(obj[prop]);
+                    } else {
+                        newObj[prop] = obj[prop];
+                    }
+                }
+                return newObj;
             };
-			var dependecyGraph = new vis.Network(document.getElementById('dependency-graph'), data, options);
-		</script>
-	</body>
+
+            function createArrows(containerEl, dependencies) {
+                const mouseHoverAnchorOptions = {
+                    style: {
+                        'background-color': '#93CBFF',
+                        'background-image': 'none'
+                    },
+                    hoverStyle: {
+                        'border-color': '#0091C6',
+                        'background-color': '#93CBFF'
+                    }
+                };
+
+                const allowedDependencyOptions = {
+                    startSocket: 'bottom',
+                    color: 'green',
+                    size: 1.5,
+                    endSocket: 'top',
+                    endPlug: 'arrow2',
+                    endPlugSize: 2,
+                    hide: true
+                };
+
+                const illegalDependecyOptions = {
+                    startSocket: 'top',
+                    dash: {
+                        len: 6,
+                        gap: 3
+                    },
+                    color: 'red',
+                    size: 1.5,
+                    endSocket: 'bottom',
+                    endPlug: 'arrow2',
+                    endPlugSize: 2
+                };
+
+                function withLabel(options, label, isStraightDown) {
+                    var result = clone(options);
+                    result.middleLabel = label;
+                    result.path = isStraightDown ? 'arc' : 'straight';
+                    return result;
+                }
+
+                var hoverMapping = {};
+                dependencies.forEach(function (dependency) {
+                    var fromEl = containerEl.querySelector('[data-node="' + dependency.from + '"]');
+                    var toEl = containerEl.querySelector('[data-node="' + dependency.to + '"]');
+                    var isIllegalDependency = parseInt(fromEl.getAttribute('data-level')) > parseInt(toEl.getAttribute(
+                        'data-level'));
+                    var isStraightDown = Math.abs((fromEl.getBoundingClientRect().left + fromEl.getBoundingClientRect().width / 2)
+                        - (toEl.getBoundingClientRect().left + toEl.getBoundingClientRect().width / 2)) < 6;
+
+                    if (isIllegalDependency) {
+                        new LeaderLine(fromEl, toEl, withLabel(illegalDependecyOptions, dependency.weight + '', isStraightDown));
+                    } else {
+                        if (!hoverMapping[dependency.from]) {
+                            hoverMapping[dependency.from] = LeaderLine.mouseHoverAnchor(fromEl,
+                                mouseHoverAnchorOptions);
+                        }
+                        if (!hoverMapping[dependency.to]) {
+                            hoverMapping[dependency.to] = LeaderLine.mouseHoverAnchor(toEl,
+                                mouseHoverAnchorOptions);
+                        }
+
+                        new LeaderLine(fromEl, hoverMapping[dependency.to], withLabel(allowedDependencyOptions,
+                            dependency.weight + '', isStraightDown));
+                        new LeaderLine(hoverMapping[dependency.from], toEl, withLabel(allowedDependencyOptions,
+                            dependency.weight + '', isStraightDown));
+                    }
+                });
+            }
+
+            var dependencies = createDependencies(nodes, edges);
+            var containerEl = createGraph(rowsFromLayeredGraphLayout(dependencies));
+            createArrows(containerEl, dependencies);
+
+        }
+    </script>
+
+    <style id="layered-sub-modules-style">
+        .layered-sub-modules .container {
+            max-width: 80vw;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: auto;
+        }
+
+        .layered-sub-modules .row {
+            display: flex;
+            flex-wrap: wrap;
+            border: 2px solid #B7B8C0;
+            background-color: #C4E7FF;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .layered-sub-modules .cell {
+            flex: 1;
+            margin: 10px;
+            padding: 4px;
+            border: 2px solid #B7B8C0;
+            background-color: #93CBFF;
+            text-align: center;
+        }
+    </style>
+
+    <style id="generic-style">
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        #visualization {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #settings {
+            position: fixed;
+            z-index: 20000;
+            background-color: #eeeeee;
+            padding: 5px;
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <ul id="settings">
+        <li>
+            <input name="visualization-type" type="radio" value="graph" checked>Graph<br>
+            <ul>
+                <li> <input name="graph-include-external-functionalities" type="checkbox">
+                    Include external functionalities<br></li>
+                <li> <input name="graph-use-hierarchical-layout" type="checkbox">
+                    Use hierarchical layout<br></li>
+            </ul>
+        </li>
+        <li>
+            <input name="visualization-type" type="radio" value="layered-sub-modules">
+            Layered sub-modules<br>
+        </li>
+    </ul>
+
+    <div id="visualization"></div>
+
+    <script>
+            (function () {
+                function getValue(params, name, allowedValues, fallback) {
+                    var value = params.get(name);
+                    return allowedValues.indexOf(value) >= 0 ? value : fallback;
+                }
+
+                function updateUrlAndReload(state) {
+                    var newParams = new URLSearchParams();
+                    Object.keys(state).forEach(function (key) {
+                        newParams.append(key, state[key]);
+                    });
+                    location.hash = newParams.toString();
+                    location.reload(true)
+                }
+
+                var urlParams = new URLSearchParams(location.hash ? location.hash.substring(1) : '');
+                // parse state from URL
+                var state = {
+                    'visualization-type': getValue(urlParams, 'visualization-type', ['graph', 'layered-sub-modules'], 'graph'),
+                    'graph-include-external-functionalities': getValue(urlParams, 'graph-include-external-functionalities', ['true', 'false'], 'true') === 'true',
+                    'graph-use-hierarchical-layout': getValue(urlParams, 'graph-use-hierarchical-layout', ['true', 'false'], 'false') === 'true'
+                };
+
+                // apply state
+                Array.prototype.forEach.call(document.getElementsByName('visualization-type'), function (el) {
+                    var checked = (el.value === state['visualization-type']);
+                    el.checked = checked;
+                    Array.prototype.forEach.call(el.parentElement.querySelectorAll('input:not([type="radio"])'), function (el) {
+                        el.hidden = !checked;
+                    });
+
+                });
+                document.getElementsByName('graph-include-external-functionalities')[0].checked = state['graph-include-external-functionalities'];
+                document.getElementsByName('graph-use-hierarchical-layout')[0].checked = state['graph-use-hierarchical-layout'];
+
+                // register change listener for updating state and reloading page with new URL
+                Array.prototype.forEach.call(document.querySelectorAll('input'), function (el) {
+                    el.addEventListener('change', function (event) {
+                        if (event.target.type === 'checkbox') {
+                            state[event.target.name] = event.target.checked;
+                        } else if (event.target.type === 'radio') {
+                            state[event.target.name] = event.target.value;
+                        } else {
+                            throw 'Unknown type!';
+                        }
+
+                        updateUrlAndReload(state);
+                    });
+                });
+
+                function identity(value) {
+                    return value;
+                }
+
+                var nodes = identity(/*{nodes-array}*/);
+                var edges = identity(/*{edges-array}*/);
+
+                if (state['visualization-type'] === 'graph') {
+                    pocketsaw.showGraph(nodes, edges, state['graph-include-external-functionalities'], state['graph-use-hierarchical-layout']);
+                } else {
+                    pocketsaw.showLayeredSubModules(nodes, edges);
+                }
+            })();
+    </script>
+</body>
+
 </html>
