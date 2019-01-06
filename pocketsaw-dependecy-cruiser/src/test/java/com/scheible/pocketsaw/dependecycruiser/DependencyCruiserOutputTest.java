@@ -20,6 +20,7 @@ public class DependencyCruiserOutputTest {
 
 		assertThat(packageDependencies.keySet()).hasSize(1);
 		assertThat(packageDependencies.get(packageDependencies.keySet().iterator().next())).containsExactly("src.app");
+		assertThat(packageDependencies.getCodeDependencyCount("src", "src.app")).isEqualTo(1);
 	}
 
 	private static String readDependencies() throws IOException {

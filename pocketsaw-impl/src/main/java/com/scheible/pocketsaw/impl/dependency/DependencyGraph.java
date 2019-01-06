@@ -55,11 +55,11 @@ public class DependencyGraph {
 	}
 
 	public Optional<List<PackageGroupDescriptor>> getAnyDescriptorCycle() {
-		return CycleDetector.findAny(this, (dependency) -> dependency.hasDescriptorOrigin());
+		return CycleDetector.findAny(this, Dependency::hasDescriptorOrigin);
 	}
 
 	public Optional<List<PackageGroupDescriptor>> getAnyCodeCycle() {
-		return CycleDetector.findAny(this, (dependency) -> dependency.hasCodeOrigin());
+		return CycleDetector.findAny(this, Dependency::hasCodeOrigin);
 	}
 
 	public Set<Dependency> getIllegalCodeDependencies() {

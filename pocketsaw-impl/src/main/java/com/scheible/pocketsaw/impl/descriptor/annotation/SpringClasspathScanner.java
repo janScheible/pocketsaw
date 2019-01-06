@@ -5,6 +5,7 @@ import com.scheible.pocketsaw.api.SubModule;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
@@ -29,6 +30,6 @@ public class SpringClasspathScanner extends ClasspathScanner {
 		ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 		scanner.addIncludeFilter(new AnnotationTypeFilter(annotationClass));
 		return scanner.findCandidateComponents(basePackageClass.getPackage().getName()).stream()
-				.map(beanDef -> beanDef.getBeanClassName()).filter(TEST_CLASS_FILTER).collect(Collectors.toSet());
+				.map(BeanDefinition::getBeanClassName).filter(TEST_CLASS_FILTER).collect(Collectors.toSet());
 	}
 }

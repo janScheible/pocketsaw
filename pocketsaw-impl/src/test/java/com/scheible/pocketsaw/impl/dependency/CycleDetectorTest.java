@@ -25,14 +25,14 @@ public class CycleDetectorTest {
 		SubModuleDescriptor e = new SubModuleDescriptor("e", "e", "e", true, new HashSet<>(), new HashSet<>());
 
 		DependencyGraph graph = new DependencyGraph(new HashSet<>(Arrays.<PackageGroupDescriptor>asList(a, b, c, d, e)), new HashSet<>(Arrays.asList(
-				new Dependency(a, b, Dependency.Origin.DESCRIPTOR),
-				new Dependency(a, c, Dependency.Origin.DESCRIPTOR),
-				new Dependency(b, d, Dependency.Origin.DESCRIPTOR),
-				new Dependency(c, d, Dependency.Origin.DESCRIPTOR),
-				new Dependency(c, e, Dependency.Origin.DESCRIPTOR),
-				new Dependency(d, e, Dependency.Origin.DESCRIPTOR),
-				new Dependency(e, c, Dependency.Origin.DESCRIPTOR),
-				new Dependency(c, a, Dependency.Origin.DESCRIPTOR)
+				new Dependency(a, b, 0, Dependency.Origin.DESCRIPTOR),
+				new Dependency(a, c, 0, Dependency.Origin.DESCRIPTOR),
+				new Dependency(b, d, 0, Dependency.Origin.DESCRIPTOR),
+				new Dependency(c, d, 0, Dependency.Origin.DESCRIPTOR),
+				new Dependency(c, e, 0, Dependency.Origin.DESCRIPTOR),
+				new Dependency(d, e, 0, Dependency.Origin.DESCRIPTOR),
+				new Dependency(e, c, 0, Dependency.Origin.DESCRIPTOR),
+				new Dependency(c, a, 0, Dependency.Origin.DESCRIPTOR)
 		)));
 
 		// NOTE It is non determenistric!

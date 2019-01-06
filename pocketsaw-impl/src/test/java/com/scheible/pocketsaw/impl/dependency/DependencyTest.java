@@ -1,6 +1,5 @@
 package com.scheible.pocketsaw.impl.dependency;
 
-import com.scheible.pocketsaw.impl.dependency.Dependency;
 import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.CODE;
 import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.DESCRIPTOR;
 import com.scheible.pocketsaw.impl.descriptor.ExternalFunctionalityDescriptor;
@@ -20,13 +19,13 @@ public class DependencyTest {
 
 	@Test
 	public void originEnumTest() {
-		Assertions.assertThat(new Dependency(subModule, externalFunctionality, true, true).getOrigins()).contains(DESCRIPTOR, CODE);
-		Assertions.assertThat(new Dependency(subModule, externalFunctionality, true, false).getOrigins()).contains(DESCRIPTOR);
-		Assertions.assertThat(new Dependency(subModule, externalFunctionality, false, true).getOrigins()).contains(CODE);
+		Assertions.assertThat(new Dependency(subModule, externalFunctionality, true, true, 1).getOrigins()).contains(DESCRIPTOR, CODE);
+		Assertions.assertThat(new Dependency(subModule, externalFunctionality, true, false, 0).getOrigins()).contains(DESCRIPTOR);
+		Assertions.assertThat(new Dependency(subModule, externalFunctionality, false, true, 1).getOrigins()).contains(CODE);
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void testMissingOrigin() {
-		new Dependency(subModule, externalFunctionality, false, false).getOrigins();
+		new Dependency(subModule, externalFunctionality, false, false, 0).getOrigins();
 	}
 }

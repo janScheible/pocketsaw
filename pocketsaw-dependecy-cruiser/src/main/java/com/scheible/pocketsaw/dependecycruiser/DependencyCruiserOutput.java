@@ -10,11 +10,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  *
@@ -23,7 +23,7 @@ import java.util.Set;
 public class DependencyCruiserOutput implements PackageDependencySource {
 	
 	PackageDependencies read(final String dependencyInfo) {
-		final Map<String, Set<String>> result = new HashMap<>();
+		final Map<Map.Entry<String, String>, Integer> packageDependencies = new HashMap<>();
 
 		final JsonObject dependencies = Json.parse(dependencyInfo).asObject();
 		final JsonArray modules = dependencies.get("modules").asArray();
@@ -40,14 +40,15 @@ public class DependencyCruiserOutput implements PackageDependencySource {
 					final Optional<String> dependencyPackageName = fileNameToPackage(dependecyFileName);
 
 					if (dependencyPackageName.isPresent() && !packageName.equals(dependencyPackageName)) {
-						result.computeIfAbsent(packageName.get(), key -> new HashSet<>())
-								.add(dependencyPackageName.get());
+						final Map.Entry<String, String> dependency = new AbstractMap.SimpleImmutableEntry<>(
+								packageName.get(), dependencyPackageName.get());
+						packageDependencies.put(dependency, packageDependencies.computeIfAbsent(dependency, (key) -> 0) + 1);
 					}
 				}
 			}
 		}
 
-		return new PackageDependencies(result);
+		return PackageDependencies.withCodeDependencyCounts(packageDependencies);
 	}
 	
 	@Override

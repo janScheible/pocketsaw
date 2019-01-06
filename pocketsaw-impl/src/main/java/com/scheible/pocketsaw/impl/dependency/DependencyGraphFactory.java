@@ -11,6 +11,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
 import com.scheible.pocketsaw.impl.matching.UnmatchedPackageException;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map.Entry;
+import java.util.function.Function;
 
 /**
  *
@@ -18,23 +21,28 @@ import com.scheible.pocketsaw.impl.matching.UnmatchedPackageException;
  */
 public class DependencyGraphFactory {
 	
-	public static DependencyGraph create(PackageDependencies codePackageDependencies, Set<SubModuleDescriptor> subModules,
-			Set<ExternalFunctionalityDescriptor> externalFunctionalities) {
-		Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> descriptorDependencies = calcDescriptorDependencies(subModules);
+	public static DependencyGraph create(final PackageDependencies codePackageDependencies, final Set<SubModuleDescriptor> subModules,
+			final Set<ExternalFunctionalityDescriptor> externalFunctionalities) {
+		final Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> descriptorDependencies = calcDescriptorDependencies(subModules);
 
-		Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> codeDependencies
+		final Map<SubModuleDescriptor, Set<Entry<PackageGroupDescriptor, Integer>>> codeDependencies
 				= calcCodeDependencies(subModules, externalFunctionalities, codePackageDependencies);
 
 		Set<Dependency> allDependencies = new HashSet<>();
 		subModules.forEach(subModule -> {
-			Set<PackageGroupDescriptor> descriptorUsed = descriptorDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>());
-			Set<PackageGroupDescriptor> codeUsed =  codeDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>());
+			final Set<PackageGroupDescriptor> descriptorUsed = descriptorDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>());
+			final Map<PackageGroupDescriptor, Integer> codeUsedWithDependencyCount =  codeDependencies
+					.computeIfAbsent(subModule, (key) -> new HashSet<>()).stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+			final Set<PackageGroupDescriptor> codeUsed = codeDependencies
+					.computeIfAbsent(subModule, (key) -> new HashSet<>()).stream().map(Entry::getKey).collect(Collectors.toSet());
 			
-			Set<PackageGroupDescriptor> allUsed = new HashSet<>(descriptorUsed);
+			final Set<PackageGroupDescriptor> allUsed = new HashSet<>(descriptorUsed);
 			allUsed.addAll(codeUsed);
-			
+
 			allUsed.forEach(used -> {
-				allDependencies.add(new Dependency(subModule, used, descriptorUsed.contains(used), codeUsed.contains(used)));
+				final boolean isCodeDependency = codeUsed.contains(used);
+				allDependencies.add(new Dependency(subModule, used, 
+						descriptorUsed.contains(used), isCodeDependency, codeUsedWithDependencyCount.getOrDefault(used, isCodeDependency ? 1 : 0)));
 			});
 		});		
 		
@@ -44,16 +52,17 @@ public class DependencyGraphFactory {
 		return new DependencyGraph(allDescriptors, allDependencies);
 	}
 
-	private static Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> calcDescriptorDependencies(Set<SubModuleDescriptor> subModules) {
+	private static Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> calcDescriptorDependencies(final Set<SubModuleDescriptor> subModules) {
 		final Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> descriptorDependencies = new HashMap<>();
-		final Map<String, SubModuleDescriptor> subModuleIdMapping = subModules.stream().collect(Collectors.toMap(x -> x.getId(), x -> x));
+		final Map<String, SubModuleDescriptor> subModuleIdMapping = subModules.stream()
+				.collect(Collectors.toMap(SubModuleDescriptor::getId, x -> x));
 
-		for (SubModuleDescriptor subModule : subModules) {
-			for (PackageGroupDescriptor externalFunctionalitiesDescriptor : subModule.getUsedExternalFunctionalities()) {
+		for (final SubModuleDescriptor subModule : subModules) {
+			for (final PackageGroupDescriptor externalFunctionalitiesDescriptor : subModule.getUsedExternalFunctionalities()) {
 				descriptorDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>()).add(externalFunctionalitiesDescriptor);
 			}
 
-			for (String subModuleId : subModule.getUsedSubModuleIds()) {
+			for (final String subModuleId : subModule.getUsedSubModuleIds()) {
 				descriptorDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>()).add(subModuleIdMapping.get(subModuleId));
 			}
 		}
@@ -61,25 +70,26 @@ public class DependencyGraphFactory {
 		return descriptorDependencies;
 	}
 
-	private static Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> calcCodeDependencies(Set<SubModuleDescriptor> subModules,
+	private static Map<SubModuleDescriptor, Set<Entry<PackageGroupDescriptor, Integer>>> calcCodeDependencies(final Set<SubModuleDescriptor> subModules,
 			final Set<ExternalFunctionalityDescriptor> externalFunctionalities, PackageDependencies packageDependencies) {
-		final Map<SubModuleDescriptor, Set<PackageGroupDescriptor>> codeDependencies = new HashMap<>();
+		final Map<SubModuleDescriptor, Set<Entry<PackageGroupDescriptor, Integer>>> codeDependencies = new HashMap<>();
 		
 		final PackageMatcher<PackageGroupDescriptor> subModuleMatcher = new PackageMatcher(subModules);
 		final PackageMatcher<PackageGroupDescriptor> externalFunctionalitiesMatcher = new PackageMatcher(externalFunctionalities);
 
-		for (Map.Entry<String, Set<String>> currentCodeDependencies : packageDependencies.entrySet()) {
+		for (final Entry<String, Set<String>> currentCodeDependencies : packageDependencies.entrySet()) {
 			SubModuleDescriptor subModule = (SubModuleDescriptor)(subModuleMatcher.findMatching(currentCodeDependencies.getKey())
 					.orElseThrow(() -> new UnmatchedPackageException("The package '" + currentCodeDependencies.getKey() + "' was not matched at all!")));
 
-			for (String usedPackageName : currentCodeDependencies.getValue()) {
-				PackageGroupDescriptor matchedPackage = subModuleMatcher.findMatching(usedPackageName)
+			for (final String usedPackageName : currentCodeDependencies.getValue()) {
+				final int codeDependencyCount = packageDependencies.getCodeDependencyCount(currentCodeDependencies.getKey(), usedPackageName);
+				final PackageGroupDescriptor matchedPackage = subModuleMatcher.findMatching(usedPackageName)
 						.orElseGet(() -> externalFunctionalitiesMatcher.findMatching(usedPackageName)
 								.orElseThrow(() -> new UnmatchedPackageException("The package '" + usedPackageName + "' was not matched at all!")));
 
-				boolean isSelfDependency = subModule.equals(matchedPackage);
+				final boolean isSelfDependency = subModule.equals(matchedPackage);
 				if(!isSelfDependency) {
-					codeDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>()).add(matchedPackage);
+					codeDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>()).add(new SimpleImmutableEntry<>(matchedPackage, codeDependencyCount));
 				}
 			}
 		}

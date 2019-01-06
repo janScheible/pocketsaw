@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -35,7 +36,7 @@ public class CycleDetector {
 
 	private static List<PackageGroupDescriptor> toCycleList(Map<PackageGroupDescriptor, PackageGroupDescriptor> greyPreviousMapping) {
 		Map<PackageGroupDescriptor, PackageGroupDescriptor> greyNextMapping = greyPreviousMapping.entrySet().stream()
-				.collect(Collectors.toMap(entry -> entry.getValue(), entry -> entry.getKey()));
+				.collect(Collectors.toMap(Entry::getValue, Entry::getKey));
 		
 		List<PackageGroupDescriptor> cycle = new ArrayList<>();
 		PackageGroupDescriptor current = greyNextMapping.get(null);

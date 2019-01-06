@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class VisJsRenderer {
@@ -69,16 +70,25 @@ public class VisJsRenderer {
 		final int to;
 		final String arrows;
 		final Color color;
+		final Optional<String> label;
+		final float width;
 
-		public Edge(final int from, final int to, final Color color) {
+		public Edge(final int from, final int to, final Color color, Optional<String> label, float width) {
 			this.from = from;
 			this.to = to;
 			this.arrows = "to";
 			this.color = color;
+			this.label = label;
+			this.width = width;
 		}
 
 		public JsonObject toJsonObject() {
-			return Json.object().add("from", from).add("to", to).add("arrows", arrows).add("color", color.toJsonObject());
+			JsonObject result = Json.object().add("from", from).add("to", to).add("arrows", arrows)
+					.add("color", color.toJsonObject()).add("width", width);
+			if(label.isPresent()) {
+				result.add("label", label.get());
+			}
+			return result;
 		}
 	}
 
@@ -119,8 +129,13 @@ public class VisJsRenderer {
 			int sourceId = packageGroupToIdMapping.get(dependency.getSource());
 			int targetId = packageGroupToIdMapping.get(dependency.getTarget());
 
+			final float width = dependency.getCodeDependencyCount() == 0 ? 1 
+					: (float)(Math.log(dependency.getCodeDependencyCount()) / Math.log(0.5) * -1 + 1);
+			final Optional<String> label = dependency.getCodeDependencyCount() == 0 ? Optional.empty() 
+					: Optional.of(Integer.toString(dependency.getCodeDependencyCount()));
 			edges.add(new Edge(sourceId, targetId, new Color(dependency.hasCodeOrigin() && dependency.hasDescriptorOrigin()
-					? "green" : dependency.hasDescriptorOrigin() && !dependency.hasCodeOrigin() ? "gray" : "red")));
+					? "green" : dependency.hasDescriptorOrigin() && !dependency.hasCodeOrigin() ? "gray" : "red"),
+					label, width));
 		}
 
 		String nodesJson = nodes.stream().map(node -> node.toJsonObject()).collect(MinimalJsonCollector.toJson());

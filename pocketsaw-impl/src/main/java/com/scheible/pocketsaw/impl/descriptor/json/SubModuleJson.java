@@ -5,6 +5,7 @@ import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.Json;
 import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.JsonArray;
 import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.JsonObject;
+import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.JsonValue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -44,7 +45,7 @@ public class SubModuleJson {
 					.includeSubPackages(dependency.contains("includeSubPackages") ? dependency.getBoolean("includeSubPackages", true) : null)
 					.color(dependency.contains("color") ? dependency.getString("color", "") : null)
 					.uses(dependency.contains("uses")
-							? dependency.get("uses").asArray().values().stream().map(v -> v.asString()).collect(Collectors.toSet())
+							? dependency.get("uses").asArray().values().stream().map(JsonValue::asString).collect(Collectors.toSet())
 							: new HashSet<>());
 
 			if (names.contains(subModule.getName())) {

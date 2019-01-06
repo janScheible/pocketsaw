@@ -1,6 +1,5 @@
 package com.scheible.pocketsaw.impl.matching;
 
-import com.scheible.pocketsaw.impl.matching.PackageMatcher;
 import com.scheible.pocketsaw.impl.descriptor.ExternalFunctionalityDescriptor;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,7 +16,7 @@ public class PackageMatcherTest {
 				new ExternalFunctionalityDescriptor("2", "application-service", "applicationservice.*"),
 				new ExternalFunctionalityDescriptor("3", "domain", "store.first.**"),
 				new ExternalFunctionalityDescriptor("4", "domain", "store.second.*")))).getPackageGroups()
-				.stream().map(def -> def.getPackageMatchPattern()).collect(Collectors.toList()))
+				.stream().map(ExternalFunctionalityDescriptor::getPackageMatchPattern).collect(Collectors.toList()))
 				.containsExactly("store.second.*", "store.first.**", "applicationservice.*", "adapter.**");
 	}
 }

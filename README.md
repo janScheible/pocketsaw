@@ -1,5 +1,5 @@
 [adding-uses-workflow]: adding-uses-workflow.gif "Adding of uses relations"
-[pocketsaw-package-group-structure]: adding-uses-workflow-all-uses.png "Pocketsaw package group structure"
+[pocketsaw-package-group-structure]: pocketsaw-package-group-structure.png "Pocketsaw package group structure"
 [angular-tour-of-heroes-dependencies]: angular-tour-of-heroes-dependencies.png "Angular Tour of Heros Dependencies"
 
 # Pocketsaw

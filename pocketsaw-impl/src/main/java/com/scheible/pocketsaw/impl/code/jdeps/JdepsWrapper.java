@@ -7,12 +7,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -21,9 +21,9 @@ import java.util.function.Predicate;
  * @author sj
  */
 public class JdepsWrapper {
-
+	
 	private static PackageDependencies parseOutput(final List<String> lines, DependencyFilter dependencyFilter) {
-		Map<String, Set<String>> packageDependencies = new HashMap<>();
+		final Map<Entry<String, String>, Integer> packageDependencies = new HashMap<>();
 
 		final Function<String, String> packageNameExtractor = className -> {
 			return className.substring(0, className.lastIndexOf('.'));
@@ -39,14 +39,14 @@ public class JdepsWrapper {
 			final String packageName = packageNameExtractor.apply(className);
 			final String dependentClass = lineParts[1].trim().split(" ")[0];
 			final String dependentPackageName = packageNameExtractor.apply(dependentClass);
-
-			Set<String> dependentClasses = packageDependencies.computeIfAbsent(packageName, key -> new HashSet<>());
+			
 			if (!packageName.equals(dependentPackageName) && !dependencyFilter.apply(className, dependentClass)) {
-				dependentClasses.add(dependentPackageName);
+				final Entry<String, String> dependency = new SimpleImmutableEntry<>(packageName, dependentPackageName);
+				packageDependencies.put(dependency, packageDependencies.computeIfAbsent(dependency, (key) -> 0) + 1);
 			}
 		}
-
-		return new PackageDependencies(packageDependencies);
+		
+		return PackageDependencies.withCodeDependencyCounts(packageDependencies);
 	}
 
 	public static PackageDependencies run(final String relativeClassesDirectory, DependencyFilter dependencyFilter) {

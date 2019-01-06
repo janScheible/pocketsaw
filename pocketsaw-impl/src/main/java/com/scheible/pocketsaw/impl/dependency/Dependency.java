@@ -21,9 +21,12 @@ public class Dependency {
 	private final PackageGroupDescriptor target;
 
 	private final EnumSet<Origin> origins;
+	
+	private final int codeDependencyCount;
 
-	public Dependency(SubModuleDescriptor source, PackageGroupDescriptor target, boolean isDescriptorDependency, boolean isCodeDependency) {
-		this(source, target, isDescriptorDependency
+	public Dependency(SubModuleDescriptor source, PackageGroupDescriptor target, boolean isDescriptorDependency, 
+			boolean isCodeDependency, int codeDependencyCount) {
+		this(source, target, codeDependencyCount, isDescriptorDependency
 				? DESCRIPTOR : CODE, isDescriptorDependency && isCodeDependency ? new Origin[]{CODE} : new Origin[0]);
 
 		if (!isCodeDependency && !isDescriptorDependency) {
@@ -31,14 +34,21 @@ public class Dependency {
 		}
 	}
 
-	public Dependency(SubModuleDescriptor source, PackageGroupDescriptor target, Origin origin, Origin... additionalOrigins) {
+	public Dependency(SubModuleDescriptor source, PackageGroupDescriptor target, int codeDependencyCount,
+			Origin origin, Origin... additionalOrigins) {
 		Objects.requireNonNull(source);
 		Objects.requireNonNull(target);
 
 		this.source = source;
 		this.target = target;
+		
+		this.codeDependencyCount = codeDependencyCount;
 
 		this.origins = EnumSet.of(origin, additionalOrigins);
+		
+		if(!this.origins.contains(Origin.CODE) && codeDependencyCount > 0) {
+			throw new IllegalStateException("Descriptor only dependencies with code dependency count > 0 do not make sense at all!");
+		}
 	}
 
 	public SubModuleDescriptor getSource() {
@@ -47,6 +57,10 @@ public class Dependency {
 
 	public PackageGroupDescriptor getTarget() {
 		return this.target;
+	}
+
+	public int getCodeDependencyCount() {
+		return codeDependencyCount;
 	}
 
 	public EnumSet<Origin> getOrigins() {
@@ -72,8 +86,8 @@ public class Dependency {
 			return true;
 		} else if (obj != null && obj.getClass().equals(this.getClass())) {
 			Dependency other = (Dependency) obj;
-			return this.source.equals(other.source) && this.target.equals(other.target)
-					&& this.origins.equals(other.origins);
+			return this.source.equals(other.source) && this.target.equals(other.target) 
+					&& this.codeDependencyCount == other.codeDependencyCount && this.origins.equals(other.origins);
 		} else {
 			return false;
 		}
@@ -84,6 +98,7 @@ public class Dependency {
 		return this.getClass().getSimpleName() + "[" + String.join(", ",
 				"source = " + this.source.getName(),
 				"target = " + this.target.getName(),
+				"codeDependencyCount = " + this.codeDependencyCount,
 				"origins = " + this.origins
 		) + "]";
 	}
