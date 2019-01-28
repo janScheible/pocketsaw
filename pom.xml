@@ -29,6 +29,7 @@
 		<module>pocketsaw-impl</module>
 		<module>pocketsaw-dependecy-cruiser</module>
 		<module>pocketsaw-cli-exec</module>
+		<module>pocketsaw-cli-build</module>
 	</modules>
 
 	<scm>
