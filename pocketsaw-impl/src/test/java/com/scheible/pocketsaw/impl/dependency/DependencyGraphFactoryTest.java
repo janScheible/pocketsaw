@@ -58,4 +58,22 @@ public class DependencyGraphFactoryTest {
 
 		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, 2, CODE));
 	}
+	
+	/**
+	 * #20 "duplicate key exception in DependencyGraphFactory"
+	 */
+	@Test
+	public void duplicatedDependenciesWithDifferentDependecyCount() {
+		final SubModuleDescriptor a = new SubModuleDescriptor("a", "a", "a", false, "red", new HashSet<>(), new HashSet<>());
+		final SubModuleDescriptor b = new SubModuleDescriptor("b", "b", "b", true, "red", new HashSet<>(), new HashSet<>());
+
+		final Map<Map.Entry<String, String>, Integer> weightedPackageDependencies = new HashMap<>();
+		weightedPackageDependencies.put(new SimpleImmutableEntry<>("a", "b.first"), 2);
+		weightedPackageDependencies.put(new SimpleImmutableEntry<>("a", "b.second"), 1);
+		final PackageDependencies packageDependencies = PackageDependencies.withCodeDependencyCounts(weightedPackageDependencies);
+
+		final DependencyGraph graph = DependencyGraphFactory.create(packageDependencies, new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
+
+		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, 3, CODE));
+	}
 }

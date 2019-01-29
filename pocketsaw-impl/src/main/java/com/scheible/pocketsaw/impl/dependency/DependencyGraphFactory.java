@@ -13,7 +13,7 @@ import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
 import com.scheible.pocketsaw.impl.matching.UnmatchedPackageException;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
-import java.util.function.Function;
+import java.util.Optional;
 
 /**
  *
@@ -89,7 +89,12 @@ public class DependencyGraphFactory {
 
 				final boolean isSelfDependency = subModule.equals(matchedPackage);
 				if(!isSelfDependency) {
-					codeDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>()).add(new SimpleImmutableEntry<>(matchedPackage, codeDependencyCount));
+					final Set<Entry<PackageGroupDescriptor, Integer>> dependencies = codeDependencies.computeIfAbsent(subModule, (key) -> new HashSet<>());
+					final Optional<Entry<PackageGroupDescriptor, Integer>> alreadyExistingDependency = dependencies.stream().filter(e -> e.getKey().equals(matchedPackage)).findFirst();
+					if(alreadyExistingDependency.isPresent()) {
+						dependencies.remove(alreadyExistingDependency.get());
+					}
+					dependencies.add(new SimpleImmutableEntry<>(matchedPackage, codeDependencyCount + alreadyExistingDependency.map(Entry::getValue).orElse(0)));
 				}
 			}
 		}
