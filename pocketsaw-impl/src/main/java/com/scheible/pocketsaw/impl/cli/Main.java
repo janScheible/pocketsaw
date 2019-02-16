@@ -7,6 +7,7 @@ import com.scheible.pocketsaw.impl.code.NopPackageDependencySource;
 import com.scheible.pocketsaw.impl.code.PackageDependencies;
 import com.scheible.pocketsaw.impl.code.PackageDependencySource;
 import com.scheible.pocketsaw.impl.descriptor.DescriptorInfo;
+import com.scheible.pocketsaw.impl.descriptor.ExternalFunctionalityDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.json.JsonDescriptorReader;
 import java.io.File;
@@ -100,8 +101,16 @@ public class Main {
 				System.out.println("sub modules:");
 				for (final SubModuleDescriptor subModule : descriptorInfo.getSubModules()) {
 					System.out.print("  - ");
-					System.out.println(subModule.getName() + ": " + subModule.getPackageMatchPattern() + " using " + subModule.getUsedSubModuleIds());
+					System.out.println(subModule.getName() + ": " 
+							+ subModule.getPackageMatchPatterns().stream().collect(Collectors.joining(", ")) 
+							+ " using " + subModule.getUsedSubModuleIds());
 				}
+				System.out.println("external functionalities:");
+				for (final ExternalFunctionalityDescriptor externalFunctionality : descriptorInfo.getExternalFunctionalities()) {
+					System.out.print("  - ");
+					System.out.println(externalFunctionality.getName() + ": " 
+							+ externalFunctionality.getPackageMatchPatterns().stream().collect(Collectors.joining(", ")));
+				}				
 				System.out.println("package dependencies:");
 				final List<Map.Entry<String, Set<String>>> entryList = new ArrayList<>();
 				packageDependencies.entrySet().forEach(entryList::add);
