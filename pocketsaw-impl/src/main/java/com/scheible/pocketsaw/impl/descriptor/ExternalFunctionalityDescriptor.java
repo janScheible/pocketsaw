@@ -1,6 +1,7 @@
 package com.scheible.pocketsaw.impl.descriptor;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  *
@@ -11,20 +12,20 @@ public class ExternalFunctionalityDescriptor implements PackageGroupDescriptor {
 	private final String id;
 
 	private final String name;
-	private final String packageMatchPattern;
+	private final Set<String> packageMatchPatterns;
 	private final String color;
 	
 
-	public ExternalFunctionalityDescriptor(String id, String name, String packageMatchPattern, String color) {
+	public ExternalFunctionalityDescriptor(String id, String name, Set<String> packageMatchPatterns, String color) {
 		this.id = id;
 
 		this.name = name;
-		this.packageMatchPattern = packageMatchPattern;
+		this.packageMatchPatterns = packageMatchPatterns;
 		this.color = color;
 	}
 	
-	public ExternalFunctionalityDescriptor(String id, String name, String packageMatchPattern) {
-		this(id, name, packageMatchPattern, PackageGroupColorProvider.getExternalFunctionalityDefaultColor());
+	public ExternalFunctionalityDescriptor(String id, String name, Set<String> packageMatchPatterns) {
+		this(id, name, packageMatchPatterns, PackageGroupColorProvider.getExternalFunctionalityDefaultColor());
 	}	
 
 	@Override
@@ -38,8 +39,8 @@ public class ExternalFunctionalityDescriptor implements PackageGroupDescriptor {
 	}
 
 	@Override
-	public String getPackageMatchPattern() {
-		return packageMatchPattern;
+	public Set<String> getPackageMatchPatterns() {
+		return packageMatchPatterns;
 	}
 
 	@Override
@@ -69,7 +70,7 @@ public class ExternalFunctionalityDescriptor implements PackageGroupDescriptor {
 		return this.getClass().getSimpleName() + "[" + String.join(", ",
 				"id = " + this.id,
 				"name = " + this.name,
-				"packageMatchPattern = " + this.packageMatchPattern,
+				"packageMatchPattern = " + this.packageMatchPatterns,
 				"color = " + this.color
 		) + "]";
 	}

@@ -39,11 +39,18 @@ public class JsonDescriptorReaderTest {
 	}
 	
 	@Test
-	public void testNonUniquePackageName() throws IOException {
-		assertThatThrownBy(() -> JsonDescriptorReader.read(readSubModuleJson("non-unique-pacakge-name-sub-modules.json")))
+	public void testNonUniqueSubModuleName() throws IOException {
+		assertThatThrownBy(() -> JsonDescriptorReader.read(readSubModuleJson("non-unique-sub-module-names.json")))
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("The sub module names must be unique");
 	}		
+	
+	@Test
+	public void testNonUniqueExternalFunctionalityNames() throws IOException {
+		assertThatThrownBy(() -> JsonDescriptorReader.read(readSubModuleJson("non-unique-external-functionality-names.json.json")))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("The external functionality names must be unique");
+	}	
 	
 	@Test
 	public void testWithExternalFunctionalities() throws IOException {
@@ -51,11 +58,15 @@ public class JsonDescriptorReaderTest {
 		final List<ExternalFunctionalityJson> externalFunctionalities = descriptors.getExternalFunctionalities();
 		Collections.sort(externalFunctionalities, (ExternalFunctionalityJson first, ExternalFunctionalityJson second) 
 				-> first.getName().compareTo(second.getName()));
+		Collections.sort(externalFunctionalities, (first, second) -> first.getName().compareTo(second.getName()));
 		
-		assertThat(externalFunctionalities).hasSize(1);
+		assertThat(externalFunctionalities).hasSize(2);
+
+		assertThat(externalFunctionalities.get(0).getName()).isEqualTo("Guava");
+		assertThat(externalFunctionalities.get(0).getPackageMatchPatterns()).containsOnly("com.google.common.**");
 		
-		assertThat(externalFunctionalities.get(0).getName()).isEqualTo("Spring");
-		assertThat(externalFunctionalities.get(0).getPackageMatchPattern()).isEqualTo("org.springframework.*");
+		assertThat(externalFunctionalities.get(1).getName()).isEqualTo("Spring");
+		assertThat(externalFunctionalities.get(1).getPackageMatchPatterns()).containsOnly("org.springframework.beans.**", "org.springframework.context.**");
 	}		
 	
 	private static String readSubModuleJson(String fileName) throws IOException {

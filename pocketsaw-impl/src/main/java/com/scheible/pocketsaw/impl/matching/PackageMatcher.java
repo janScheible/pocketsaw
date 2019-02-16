@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import com.scheible.pocketsaw.impl.shaded.org.springframework.util.AntPathMatcher;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -17,17 +20,30 @@ public class PackageMatcher<T extends PackageMatchable> {
 
 	private static final AntPathMatcher PACKAGE_MATCHER = new AntPathMatcher(".");
 
-	private final List<T> packageGroups;
+	private final List<String> packageMatchPatterns;
+	private final Map<String, T> patternMapping = new HashMap<>();
 
 	public PackageMatcher(Set<T> packageGroups) {
-		this.packageGroups = this.sortByHigherMatchPrecedence(new ArrayList<>(packageGroups));
+		for(final T packageGroup : packageGroups) {
+			for(final String packageMatchPattern : packageGroup.getPackageMatchPatterns()) {
+				if(patternMapping.containsKey(packageMatchPattern)) {
+					throw new IllegalStateException(String.format("The %s is matched by %s as well ny %s!",
+							packageMatchPattern, packageGroup, patternMapping.get(packageMatchPattern)));
+				} else {
+					patternMapping.put(packageMatchPattern, packageGroup);
+				}
+			}
+		}
+		
+		this.packageMatchPatterns = sortByHigherMatchPrecedence(patternMapping.keySet());
 	}
 
 	public Optional<T> findMatching(final String packageName) {
 		T result = null;
-		
-		for (T packageGroup : packageGroups) {
-			if (PACKAGE_MATCHER.match(packageGroup.getPackageMatchPattern(), packageName + ".")) {
+
+		for (final String packageMatchPattern : packageMatchPatterns) {
+			final T packageGroup = patternMapping.get(packageMatchPattern);
+			if (PACKAGE_MATCHER.match(packageMatchPattern, packageName + ".")) {
 				if (result != null) {
 					throw new IllegalStateException("The package '" + packageName + "' is matched by "
 							+ result.toString() + "" + " as well by " + packageGroup.toString() + "!");
@@ -36,18 +52,19 @@ public class PackageMatcher<T extends PackageMatchable> {
 				}
 			}
 		}
-		
+
 		return Optional.ofNullable(result);
 	}
 
 	/**
-	 * 1. More specific packages are considered first (e.g. 'com.bla.test' before 'com.bla'). 1.1. Packages with less
-	 * '**' are considered first.
+	 * 1. More specific packages are considered first (e.g. 'com.bla.test' before 'com.bla'). 
+	 * 1.1. Packages with less '**' are considered first.
 	 *
 	 * @return A sorted copy of the input list.
 	 */
-	private List<T> sortByHigherMatchPrecedence(List<T> definitions) {
-		Collections.sort(definitions, new Comparator<T>() {
+	private static List<String> sortByHigherMatchPrecedence(Collection<String> packageMatchPatterns) {
+		List<String> result = new ArrayList<>(packageMatchPatterns);
+		Collections.sort(result, new Comparator<String>() {
 
 			private final String MULTI_WHILDCARD_PATTERN = Pattern.quote("**");
 
@@ -60,23 +77,29 @@ public class PackageMatcher<T extends PackageMatchable> {
 			}
 
 			@Override
-			public int compare(final T first, final T second) {
-				int firstPackageCount = getPackageCount(first.getPackageMatchPattern());
-				int secondPackageCount = getPackageCount(second.getPackageMatchPattern());
+			public int compare(final String first, final String second) {
+				final int firstPackageCount = getPackageCount(first);
+				final int secondPackageCount = getPackageCount(second);
 
 				if (firstPackageCount != secondPackageCount) {
 					return -1 * (firstPackageCount - secondPackageCount);
 				} else {
-					return getMultiWhildcardCount(first.getPackageMatchPattern())
-							- getMultiWhildcardCount(second.getPackageMatchPattern());
+					final int firstPackageMultiWhildcardCount = getMultiWhildcardCount(first);
+					final int secondPackageMultiWhildcardCount = getMultiWhildcardCount(second);
+					
+					if(firstPackageMultiWhildcardCount != secondPackageMultiWhildcardCount) {
+						return firstPackageMultiWhildcardCount - secondPackageMultiWhildcardCount;
+					} else {
+						return first.compareTo(second);
+					}					
 				}
 			}
 		});
 		
-		return definitions;
+		return result;
 	}
-
-	List<T> getPackageGroups() {
-		return packageGroups;
+	
+	List<String> getPackageMatchPatterns() {
+		return packageMatchPatterns;
 	}
 }

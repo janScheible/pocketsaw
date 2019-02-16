@@ -5,6 +5,7 @@ import com.scheible.pocketsaw.api.SubModule;
 import com.scheible.pocketsaw.impl.descriptor.DescriptorInfo;
 import com.scheible.pocketsaw.impl.descriptor.ExternalFunctionalityDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,9 +39,13 @@ public class AnnotationDescriptorInfoFactory {
 	static ExternalFunctionalityDescriptor fromAnnotatedExternalFunctionalityClass(Class<?> externalFunctionalityAnnotatedClass) {
 		ExternalFunctionality annotation = getAnnotation(externalFunctionalityAnnotatedClass);
 
+		if(annotation.packageMatchPattern().length == 0) {
+			throw new IllegalArgumentException(String.format("The class '%s' annotated with @%s has no packageMatchPatterns defined!", 
+					externalFunctionalityAnnotatedClass.getName(), ExternalFunctionality.class.getSimpleName()));
+		}
 		return new ExternalFunctionalityDescriptor(externalFunctionalityAnnotatedClass.getName(),
 				PackageGroupNameProvider.getName(externalFunctionalityAnnotatedClass),
-				annotation.packageMatchPattern(), annotation.color());
+				new HashSet<>(Arrays.asList(annotation.packageMatchPattern())), annotation.color());
 	}
 
 	static ExternalFunctionality getAnnotation(Class<?> externalFunctionalityAnnotatedClass) {

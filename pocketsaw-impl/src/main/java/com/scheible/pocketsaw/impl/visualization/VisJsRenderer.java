@@ -120,7 +120,8 @@ public class VisJsRenderer {
 
 		for (PackageGroupDescriptor descriptor : dependencyGraph.getPackageGroups()) {
 			packageGroupToIdMapping.put(descriptor, idCounter);
-			nodes.add(new Node(idCounter, descriptor.getName(), descriptor.getPackageMatchPattern(), descriptor.getColor(),
+			nodes.add(new Node(idCounter, descriptor.getName(), 
+					descriptor.getPackageMatchPatterns().stream().collect(Collectors.joining(", ")), descriptor.getColor(),
 					descriptor instanceof SubModuleDescriptor ? Node.Type.SUB_MODULE : Node.Type.EXTERNAL_FUNCTIONALITY));
 			idCounter++;
 		}

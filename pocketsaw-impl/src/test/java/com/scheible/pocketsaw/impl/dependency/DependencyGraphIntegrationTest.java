@@ -48,9 +48,9 @@ public class DependencyGraphIntegrationTest {
 	}
 
 	private DescriptorInfo getPackageGroups() {
-		final ExternalFunctionalityDescriptor springTx = new ExternalFunctionalityDescriptor("1", "spring-tx", "org.springframework.transaction.**");
-		final ExternalFunctionalityDescriptor springJms = new ExternalFunctionalityDescriptor("2", "spring-jms", "org.springframework.jms.**");
-		final ExternalFunctionalityDescriptor googleGuava = new ExternalFunctionalityDescriptor("3", "google-guava", "com.google.common.**");
+		final ExternalFunctionalityDescriptor springTx = new ExternalFunctionalityDescriptor("1", "spring-tx", new HashSet<>(Arrays.asList("org.springframework.transaction.**")));
+		final ExternalFunctionalityDescriptor springJms = new ExternalFunctionalityDescriptor("2", "spring-jms", new HashSet<>(Arrays.asList("org.springframework.jms.**")));
+		final ExternalFunctionalityDescriptor googleGuava = new ExternalFunctionalityDescriptor("3", "google-guava", new HashSet<>(Arrays.asList("com.google.common.**")));
 
 		final SubModuleDescriptor store = new SubModuleDescriptor("4", "store", "com.scheible.javasubmodules.sample.store", true,
 				new HashSet<>(), new HashSet<>());

@@ -1,10 +1,8 @@
 package com.scheible.pocketsaw.impl.descriptor.annotation;
 
 import com.scheible.pocketsaw.api.SubModule;
-import com.scheible.pocketsaw.impl.ExternalFunctionalities.SpringBeans;
-import com.scheible.pocketsaw.impl.ExternalFunctionalities.SpringContext;
-import com.scheible.pocketsaw.impl.ExternalFunctionalities.SpringCore;
 import com.scheible.pocketsaw.impl.ExternalFunctionalities.FastClasspathScanner;
+import com.scheible.pocketsaw.impl.ExternalFunctionalities.Spring;
 import com.scheible.pocketsaw.impl.descriptor.DescriptorSubModule;
 
 /**
@@ -12,7 +10,7 @@ import com.scheible.pocketsaw.impl.descriptor.DescriptorSubModule;
  *
  * @author sj
  */
-@SubModule(uses = {DescriptorSubModule.class, SpringCore.class, SpringContext.class, SpringBeans.class, 
+@SubModule(uses = {DescriptorSubModule.class, Spring.class, 
 	FastClasspathScanner.class})
 public class AnnotationDescriptorSubModule {
 

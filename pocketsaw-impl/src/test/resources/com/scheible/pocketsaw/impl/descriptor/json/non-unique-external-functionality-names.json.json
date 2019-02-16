@@ -1,0 +1,14 @@
+{
+	"subModules": [
+	],
+	"externalFunctionalities": [
+		{
+			"name": "Spring",
+			"packageMatchPattern": "org.springframework.beans.**"
+		},
+		{
+			"name": "Spring",
+			"packageMatchPattern": "org.springframework.context.**"
+		}		
+	]
+}

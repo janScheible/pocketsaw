@@ -2,7 +2,9 @@ package com.scheible.pocketsaw.impl.descriptor;
 
 import com.scheible.pocketsaw.api.SubModule;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import static java.util.Collections.unmodifiableSet;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -16,7 +18,7 @@ public class SubModuleDescriptor implements PackageGroupDescriptor {
 	private final String id;
 
 	private final String name;
-	private final String packageMatchPattern;
+	private final Set<String> packageMatchPatterns;
 	private final String color;
 
 	private final Set<String> usedSubModuleIds;
@@ -27,7 +29,7 @@ public class SubModuleDescriptor implements PackageGroupDescriptor {
 		this.id = id;
 
 		this.name = name;
-		this.packageMatchPattern = packageName + (includeSubPackages ? ".**" : ".*");
+		this.packageMatchPatterns = new HashSet<>(Arrays.asList(packageName + (includeSubPackages ? ".**" : ".*")));
 		this.color = color;
 
 		this.usedSubModuleIds = unmodifiableSet(usedSubModuleIds);
@@ -69,8 +71,8 @@ public class SubModuleDescriptor implements PackageGroupDescriptor {
 	}
 
 	@Override
-	public String getPackageMatchPattern() {
-		return packageMatchPattern;
+	public Set<String> getPackageMatchPatterns() {
+		return packageMatchPatterns;
 	}
 
 	@Override
@@ -108,7 +110,7 @@ public class SubModuleDescriptor implements PackageGroupDescriptor {
 		return this.getClass().getSimpleName() + "[" + String.join(", ",
 				"id = " + this.id,
 				"name = " + this.name,
-				"packageMatchPattern = " + this.packageMatchPattern,
+				"packageMatchPattern = " + this.packageMatchPatterns,
 				"color = " + this.color,
 				"usedSubModuleIds = " + this.usedSubModuleIds,
 				"usedExternalFunctionalities = " + this.usedExternalFunctionalities

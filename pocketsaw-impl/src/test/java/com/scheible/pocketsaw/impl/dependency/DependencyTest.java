@@ -4,6 +4,7 @@ import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.CODE;
 import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.DESCRIPTOR;
 import com.scheible.pocketsaw.impl.descriptor.ExternalFunctionalityDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
+import java.util.Arrays;
 import java.util.HashSet;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
@@ -15,7 +16,7 @@ import org.junit.Test;
 public class DependencyTest {
 
 	private final SubModuleDescriptor subModule = new SubModuleDescriptor("id", "name", "package", true, new HashSet<>(), new HashSet<>());
-	private final ExternalFunctionalityDescriptor externalFunctionality = new ExternalFunctionalityDescriptor("id", "name", "package");
+	private final ExternalFunctionalityDescriptor externalFunctionality = new ExternalFunctionalityDescriptor("id", "name", new HashSet<>(Arrays.asList("package")));
 
 	@Test
 	public void originEnumTest() {

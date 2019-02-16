@@ -12,11 +12,13 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  *
@@ -40,7 +42,7 @@ public class JsonDescriptorReader {
 
 		List<SubModuleJson> getSubModules() {
 			return subModules;
-		}		
+		}
 	}
 
 	public static DescriptorInfo read(final File modulesJsonFile) throws IOException {
@@ -54,7 +56,7 @@ public class JsonDescriptorReader {
 
 		final JsonObject descriptors = Json.parse(modulesJson).asObject();
 		final JsonArray subModules = (descriptors.contains("submodules") ? descriptors.get("submodules")
-				: descriptors.get("subModules")).asArray(); 
+				: descriptors.get("subModules")).asArray();
 		for (int i = 0; i < subModules.size(); i++) {
 			final JsonObject subModule = subModules.get(i).asObject();
 			final SubModuleJson subModuleDescriptor = new SubModuleJson(subModule.get("name").asString(),
@@ -74,14 +76,36 @@ public class JsonDescriptorReader {
 			subModuleDescriptors.add(subModuleDescriptor);
 		}
 
+		names.clear();
+
 		final JsonValue externalFunctionalities = descriptors.get("externalFunctionalities");
 		if (externalFunctionalities != null) {
 			for (int i = 0; i < externalFunctionalities.asArray().size(); i++) {
 				final JsonObject externalFunctionality = externalFunctionalities.asArray().get(i).asObject();
 
 				final String name = Objects.requireNonNull(externalFunctionality.getString("name", null));
-				final String packageMatchPattern = Objects.requireNonNull(externalFunctionality.getString("packageMatchPattern", null));
-				externalFunctionalityDescriptors.add(new ExternalFunctionalityJson(name, packageMatchPattern));
+
+				final JsonValue packageMatchPatternValue = Objects.requireNonNull(externalFunctionality.get("packageMatchPattern"));
+				final String packageMatchPattern = packageMatchPatternValue.isString() ? packageMatchPatternValue.asString() : null;
+				final Set<String> packageMatchPatterns = StreamSupport.stream(
+						(packageMatchPatternValue.isArray() ? packageMatchPatternValue.asArray() : new JsonArray()).spliterator(), false)
+						.map(v -> v.asString()).collect(Collectors.toSet());
+				final boolean packageMatchPatternIsDefinedExactlyOnce = ((packageMatchPattern != null && !packageMatchPattern.isEmpty() && packageMatchPatterns.isEmpty())
+						|| ((packageMatchPattern == null || packageMatchPattern.isEmpty()) && !packageMatchPatterns.isEmpty()));
+				if (!packageMatchPatternIsDefinedExactlyOnce) {
+					throw new IllegalStateException("'packageMatchPattern' must either be a string or an array has to be defined (name = '" + name + "')!");
+				}
+
+				final ExternalFunctionalityJson externalFunctionalityDescriptor = new ExternalFunctionalityJson(name,
+						packageMatchPatterns.isEmpty() ? new HashSet<>(Arrays.asList(packageMatchPattern)) : packageMatchPatterns);
+
+				if (names.contains(externalFunctionalityDescriptor.getName())) {
+					throw new IllegalStateException("The external functionality names must be unique ('" + externalFunctionalityDescriptor.getName() + "' was used at least twice)!");
+				} else {
+					names.add(externalFunctionalityDescriptor.getName());
+				}
+
+				externalFunctionalityDescriptors.add(externalFunctionalityDescriptor);
 			}
 		}
 
@@ -94,7 +118,7 @@ public class JsonDescriptorReader {
 						s.getColor(), s.getUsedModules(), new HashSet<>()))
 				.collect(Collectors.toSet()),
 				descriptorJson.externalFunctionalities.stream().map(e
-						-> new ExternalFunctionalityDescriptor(e.getName(), e.getName(), e.getPackageMatchPattern()))
+						-> new ExternalFunctionalityDescriptor(e.getName(), e.getName(), e.getPackageMatchPatterns()))
 						.collect(Collectors.toSet()));
 		return descriptorInfo;
 	}

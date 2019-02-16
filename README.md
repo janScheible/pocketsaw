@@ -142,8 +142,8 @@ The following conventions might be used:
   
   public class ExternalFunctionalities {
   
-      @ExternalFunctionality(packageMatchPattern = "org.springframework.beans.**")
-      public static class SpringBeans {
+      @ExternalFunctionality(packageMatchPattern = {"org.springframework.context.**", "org.springframework.beans.**"})
+      public static class Spring {
       }
   }
   ```
@@ -262,7 +262,10 @@ The file format looks like this:
     "externalFunctionalities": [
         {
             "name": "Spring",
-            "packageMatchPattern": "org.springframework.*"
+            "packageMatchPattern": ["org.springframework.beans.**", "org.springframework.context.**"]
+        }, {
+            "name": "Guava",
+            "packageMatchPattern": "com.google.common.**"
         }
     ]
 }
@@ -272,6 +275,7 @@ The file format looks like this:
   - `includeSubPackages` with default same as `@SubModule#includeSubPackages` (`true`)
   - `color` with default same as `@SubModule#color` (`orange`)
 - external functionalities (optional, depends on specific dependency source if supported)
+  - `packageMatchPattern` either a single string or an array
 
 ### Third-party dependencies information source
 

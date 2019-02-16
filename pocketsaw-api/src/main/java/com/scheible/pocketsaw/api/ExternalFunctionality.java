@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface ExternalFunctionality {
 
-	String packageMatchPattern();
+	String[] packageMatchPattern();
 	
 	String color() default "lightblue";
 }

@@ -4,7 +4,11 @@
 	"externalFunctionalities": [
 		{
 			"name": "Spring",
-			"packageMatchPattern": "org.springframework.*"
+			"packageMatchPattern": ["org.springframework.beans.**", "org.springframework.context.**"]
+		},
+		{
+			"name": "Guava",
+			"packageMatchPattern": "com.google.common.**"
 		}
 	]
 }

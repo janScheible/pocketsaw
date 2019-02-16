@@ -1,5 +1,7 @@
 package com.scheible.pocketsaw.impl.descriptor.json;
 
+import java.util.Set;
+
 /**
  *
  * @author sj
@@ -7,18 +9,18 @@ package com.scheible.pocketsaw.impl.descriptor.json;
 class ExternalFunctionalityJson {
 	
 	private final String name;
-	private final String packageMatchPattern;
+	private final Set<String> packageMatchPatterns;
 
-	ExternalFunctionalityJson(String name, String packageMatchPattern) {
+	ExternalFunctionalityJson(String name, Set<String> packageMatchPatterns) {
 		this.name = name;
-		this.packageMatchPattern = packageMatchPattern;
+		this.packageMatchPatterns = packageMatchPatterns;
 	}
 
 	String getName() {
 		return name;
 	}
 
-	String getPackageMatchPattern() {
-		return packageMatchPattern;
+	Set<String> getPackageMatchPatterns() {
+		return packageMatchPatterns;
 	}
 }
