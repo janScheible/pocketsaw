@@ -2,6 +2,7 @@
 [pocketsaw-package-group-structure]: pocketsaw-package-group-structure.png "Pocketsaw package group structure"
 [pocketsaw-layered-sub-modules]: pocketsaw-layered-sub-modules.png "Pocketsaw layered sub-modules"
 [angular-tour-of-heroes-dependencies]: angular-tour-of-heroes-dependencies.png "Angular Tour of Heros Dependencies"
+[disid-multimodule-spring-boot]: disid-multimodule-spring-boot.png "DISID Spring Boot Multimodule"
 
 # Pocketsaw
 
@@ -73,7 +74,7 @@ and
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.2.1</version>
+    <version>1.3.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -191,6 +192,19 @@ In this case either the code has to be fixed to remove the not allowed code depe
 
 Since version 1.1.0 of Pocketsaw in addition to Java-only projects it can be used for asserting the sub-module structure of projects containing an Angular frontend as well.
 
+The first step is to install Dependency Cruiser with `npm install --save-dev dependency-cruiser`.
+Next it is easiest to add the following to the `scripts` section of the `package.json`:
+```json
+"dependencies": "dependency-cruise --ts-pre-compilation-deps -T json --exclude \"^node_modules\" src > dependencies.json"
+```
+
+Pocketsaw can then be run via the  CLI:
+```
+java -jar pocketsaw-1.3.0.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+```
+
+### Angular Tour Of Heros Example
+
 In the following the structure of an [Angular Tour Of Heroes](https://github.com/rpoitras/angular-tour-of-heroes) example is visualized:
 
 ![angular-tour-of-heroes-dependencies]
@@ -198,14 +212,42 @@ In the following the structure of an [Angular Tour Of Heroes](https://github.com
 The good news is that the "children" of `App` have no dependencies with their siblings at all.
 Also, the two-way relation between them and `App` could perhaps easily be resolved by moving `HeroService` and `MessageService` to dedicated sub-directories and therefore sub-modules.
 
+## Using Pocketsaw with a Spring Boot JAR
+
+Since version 1.3.0 there is also support for analyzing Spring BOOT JARs "from the outside".
+That means instead of using annotations in the code an external `sub-module.json` is used.
+The use case is to analyze an unmodified code base that does (not yet) use Pocketsaw.
+
+```
+java -jar pocketsaw-1.3.0.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+```
+
+### Spring Boot Multimodule Example
+
+In the following the structure of a [Spring Boot Multimodule](https://github.com/DISID/disid-proofs/tree/master/spring-boot-multimodule) project is visualized:
+
+![disid-multimodule-spring-boot]
+
+## CLI 
+
+Since version 1.1.0 there is CLI support available via the `com.scheible.pocketsaw.impl.cli.Main` class.
+
+```
+usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser|spring-boot-jar} <pocketsaw-dependency-graph.html> 
+           [--ignore-illegal-code-dependencies] [--verbose]
+```
+
+Dependency information sources might require specific parameters to be passed.
+The format for that is `dependency-source:foo=bar:value=42`.
+
 ### Sub-modules descriptors
 
-For non-Java usage, currently the sub-modules descriptors have to be read from a JSON file (external functionalities are not yet supported).
+For CLI usage the sub-modules descriptors are read from a JSON file.
 The file format looks like this:
 
 ```json
 {
-    "submodules": [
+    "subModules": [
         {
             "name": "First",
             "packageName": "project.first",
@@ -216,12 +258,20 @@ The file format looks like this:
             "packageName": "project.first.child",
             "uses": ["First"]
         }
+    ],
+    "externalFunctionalities": [
+        {
+            "name": "Spring",
+            "packageMatchPattern": "org.springframework.*"
+        }
     ]
 }
 ```
-- `uses` with `[]` as default
-- `includeSubPackages` with default same as `@SubModule#includeSubPackages` (`true`)
-- `color` with default same as `@SubModule#color` (`orange`)
+- sub-modules
+  - `uses` with `[]` as default
+  - `includeSubPackages` with default same as `@SubModule#includeSubPackages` (`true`)
+  - `color` with default same as `@SubModule#color` (`orange`)
+- external functionalities (optional, depends on specific dependency source if supported)
 
 ### Third-party dependencies information source
 
@@ -230,28 +280,24 @@ Pocketsaw then uses JDK's `ServiceLoader` to find and load the dependency source
 Therefore a no-args constructor is mandatory.
 For an example of such an implementation see the one of [Dependency Cruiser](pocketsaw-dependecy-cruiser).
 
-#### Dependency Cruiser support
+#### Dependency Cruiser dependency information source
 
-The first step is to install Dependency Cruiser with `npm install --save-dev dependency-cruiser`.
-Next it is easiest to add the following to the `scripts` section of the `package.json`:
-```json
-"dependencies": "dependency-cruise --ts-pre-compilation-deps -T json --exclude \"^node_modules\" src > dependencies.json"
-```
-
-On the Maven side the dependency `com.scheible.pocketsaw.dependencycruiser:pocketsaw-dependency-cruiser` has to be added.
+No parameters supported.
 
 **NOTE**: For now the reported dependencies are limited to TypeScript files excluding all `*.spec.ts`.
 
-### CLI 
+**NOTE**: Currently no external functionalities are supported.
 
-Since version 1.1.0 there is CLI support available via the `com.scheible.pocketsaw.impl.cli.Main` class.
+#### Spring Boot JAR dependency information source
 
-```
-usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser} <pocketsaw-dependency-graph.html> 
-           [--ignore-illegal-code-dependencies] [--verbose]
-```
+Required parameters:
+- `root-packages`: Comma-separated list of root packages
 
-#### Maven usage
+Optional parameters:
+- `keep-temp-dir-contents`: Skips deletion of used temp directory
+- `temp-dir-name`: Custom temp directory name instead of random UUID
+
+### Maven usage
 
 To automated Pocketsaw execution in a Maven project with an Angular frontend the `exec-maven-plugin` can be use like this:
 ```xml
@@ -285,7 +331,7 @@ To automated Pocketsaw execution in a Maven project with an Angular frontend the
 </plugin>
 ```
 
-#### CLI exit codes
+### CLI exit codes
 
 The CLI uses the following exit codes to allow easy scripting:
 

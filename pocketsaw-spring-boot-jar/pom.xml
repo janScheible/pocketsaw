@@ -8,11 +8,11 @@
 		<version>1.3.0</version>
 	</parent>
 
-	<groupId>com.scheible.pocketsaw.dependencycruiser</groupId>
-	<artifactId>pocketsaw-dependency-cruiser</artifactId>
+	<groupId>com.scheible.pocketsaw.springbootjar</groupId>
+	<artifactId>pocketsaw-spring-boot-jar</artifactId>
 
 	<packaging>jar</packaging>
-	<name>Pocketsaw Dependency Cruiser Support</name>
+	<name>Pocketsaw Spring Boot JAR Support</name>
 
 	<dependencies>
 		<dependency>
