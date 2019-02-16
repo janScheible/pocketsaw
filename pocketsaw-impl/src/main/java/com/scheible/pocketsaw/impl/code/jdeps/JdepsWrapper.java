@@ -9,10 +9,12 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -48,8 +50,13 @@ public class JdepsWrapper {
 		
 		return PackageDependencies.withCodeDependencyCounts(packageDependencies);
 	}
-
+	
 	public static PackageDependencies run(final String relativeClassesDirectory, DependencyFilter dependencyFilter) {
+		return run(relativeClassesDirectory, Optional.empty(), Optional.empty(), dependencyFilter);
+	}
+
+	public static PackageDependencies run(final String relativeClassesDirectory, final Optional<File> workingDirectory,
+			final Optional<String> classpath, final DependencyFilter dependencyFilter) {
 		try {
 			final Predicate<String> isNotEmpty = str -> str != null && !str.trim().isEmpty();
 
@@ -60,8 +67,15 @@ public class JdepsWrapper {
 					: isNotEmpty.test(propJavaHome) ? propJavaHome + File.separator + ".." + File.separator + "bin" + File.separator
 					: "";
 
-			final Process process = new ProcessBuilder(jdepsDirectory + "jdeps", "-v", relativeClassesDirectory)
-					.redirectErrorStream(true).directory(null).start();
+			final List<String> command = new ArrayList<>(Arrays.asList(jdepsDirectory + "jdeps", "-v"));
+			if(classpath.isPresent()) {
+				command.add("-cp");
+				command.add(classpath.get());
+			}
+			command.add(relativeClassesDirectory);
+			
+			final Process process = new ProcessBuilder(command)
+					.redirectErrorStream(true).directory(workingDirectory.orElse(null)).start();
 			List<String> lines = new ArrayList<>();
 
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF8"))) {
