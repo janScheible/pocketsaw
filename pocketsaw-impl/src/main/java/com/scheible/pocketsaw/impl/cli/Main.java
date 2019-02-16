@@ -2,12 +2,13 @@ package com.scheible.pocketsaw.impl.cli;
 
 import com.scheible.pocketsaw.impl.Pocketsaw;
 import com.scheible.pocketsaw.impl.Pocketsaw.AnalysisResult;
+import com.scheible.pocketsaw.impl.cli.DependencySourceResolver.ResolvedDependencySource;
 import com.scheible.pocketsaw.impl.code.NopPackageDependencySource;
 import com.scheible.pocketsaw.impl.code.PackageDependencies;
 import com.scheible.pocketsaw.impl.code.PackageDependencySource;
 import com.scheible.pocketsaw.impl.descriptor.DescriptorInfo;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
-import com.scheible.pocketsaw.impl.descriptor.json.SubModuleJson;
+import com.scheible.pocketsaw.impl.descriptor.json.JsonDescriptorReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -83,15 +85,17 @@ public class Main {
 		System.out.println("sub modules JSON file: '" + resolvedArguments.subModulesJsonFile.getAbsolutePath()
 				+ "', dependencies file: '" + resolvedArguments.dependenciesFile.getAbsolutePath()
 				+ "', ignore illegal code dependencies: " + ignoreIllegalCodeDependencies
-				+ ", verbose: " + verbose);
+				+ ", verbose: " + verbose + ", dependency source specific parameters: " 
+				+ resolvedArguments.dependencySourceParameters);
 		if (resolvedArguments.dependencySource.get() instanceof NopPackageDependencySource) {
 			System.out.println("The dependency source '" + resolvedArguments.dependencySource.get().getIdentifier()
 					+ "' is only intended for testing purposes! It simply does... well nothing...");
 		}
 
 		try {
-			final DescriptorInfo descriptorInfo = SubModuleJson.read(resolvedArguments.subModulesJsonFile);
-			final PackageDependencies packageDependencies = resolvedArguments.dependencySource.get().read(new File(dependenciesFile));
+			final DescriptorInfo descriptorInfo = JsonDescriptorReader.read(resolvedArguments.subModulesJsonFile);
+			final PackageDependencies packageDependencies = resolvedArguments.dependencySource.get().read(
+					new File(dependenciesFile), resolvedArguments.dependencySourceParameters);
 			if (verbose) {
 				System.out.println("sub modules:");
 				for (final SubModuleDescriptor subModule : descriptorInfo.getSubModules()) {
@@ -109,8 +113,7 @@ public class Main {
 				}
 			}
 			final AnalysisResult result = Pocketsaw.analize(resolvedArguments.subModulesJsonFile,
-					resolvedArguments.dependenciesFile, resolvedArguments.dependencySource.get().getClass(),
-					Optional.of(resolvedArguments.dependencyGraphHtmlFile));
+					packageDependencies, Optional.of(resolvedArguments.dependencyGraphHtmlFile));
 
 			if (result.getAnyDescriptorCycle().isPresent()) {
 				System.err.println("found a descriptor cycle: " + result.getAnyDescriptorCycle().get());
@@ -143,15 +146,17 @@ public class Main {
 
 		private final File subModulesJsonFile;
 		private final File dependenciesFile;
-		private final Optional<PackageDependencySource> dependencySource;
 		private final File dependencyGraphHtmlFile;
+		private final Optional<PackageDependencySource> dependencySource;
+		private final Set<Entry<String, String>> dependencySourceParameters;
 
 		private ResolvedArguments(File subModulesJsonFile, File dependencyFile, File dependencyGraphHtmlFile,
-				Optional<PackageDependencySource> dependencySource) {
+				Optional<PackageDependencySource> dependencySource, Set<Entry<String, String>> dependencySourceParameters) {
 			this.subModulesJsonFile = subModulesJsonFile;
 			this.dependenciesFile = dependencyFile;
-			this.dependencySource = dependencySource;
 			this.dependencyGraphHtmlFile = dependencyGraphHtmlFile;
+			this.dependencySource = dependencySource;
+			this.dependencySourceParameters = dependencySourceParameters;
 		}
 
 		private boolean isValid() {
@@ -161,11 +166,13 @@ public class Main {
 	}
 
 	private static ResolvedArguments resolveArguments(String subModuleFile, String dependencyFile,
-			String dependencyGraphHtmlFile, String dependencySource,
+			String dependencyGraphHtmlFile, String dependencySourceParameter,
 			List<PackageDependencySource> packageDependencySources) {
+		final ResolvedDependencySource resolvedDependencySource = DependencySourceResolver.resolve(
+				dependencySourceParameter, packageDependencySources);
 		return new ResolvedArguments(toCanonical(subModuleFile), toCanonical(dependencyFile),
-				toCanonical(dependencyGraphHtmlFile), packageDependencySources.stream()
-				.filter(pds -> pds.getIdentifier().equals(dependencySource)).findFirst());
+				toCanonical(dependencyGraphHtmlFile), resolvedDependencySource.getDependencySource(), 
+				resolvedDependencySource.getDependencySourceParameters());
 	}
 
 	private static File toCanonical(String relativeFile) {
