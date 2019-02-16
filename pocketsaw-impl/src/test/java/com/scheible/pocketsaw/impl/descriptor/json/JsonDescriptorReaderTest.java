@@ -1,9 +1,9 @@
 package com.scheible.pocketsaw.impl.descriptor.json;
 
+import com.scheible.pocketsaw.impl.descriptor.json.JsonDescriptorReader.DescriptorJson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,11 +15,12 @@ import org.junit.Test;
  *
  * @author sj
  */
-public class SubModuleJsonTest {
+public class JsonDescriptorReaderTest {
 	
 	@Test
 	public void testBasicRead() throws IOException {
-		List<SubModuleJson> modules = new ArrayList<>(SubModuleJson.read(readSubModuleJson("basic-sub-modules.json")));
+		final DescriptorJson descriptors  = JsonDescriptorReader.read(readSubModuleJson("basic-sub-modules.json"));
+		final List<SubModuleJson> modules = descriptors.getSubModules();
 		Collections.sort(modules, (SubModuleJson first, SubModuleJson second) -> first.getName().compareTo(second.getName()));
 		
 		assertThat(modules).hasSize(2);
@@ -39,14 +40,27 @@ public class SubModuleJsonTest {
 	
 	@Test
 	public void testNonUniquePackageName() throws IOException {
-		assertThatThrownBy(() -> SubModuleJson.read(readSubModuleJson("non-unique-pacakge-name-sub-modules.json")))
+		assertThatThrownBy(() -> JsonDescriptorReader.read(readSubModuleJson("non-unique-pacakge-name-sub-modules.json")))
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("The sub module names must be unique");
 	}		
 	
+	@Test
+	public void testWithExternalFunctionalities() throws IOException {
+		final DescriptorJson descriptors  = JsonDescriptorReader.read(readSubModuleJson("basic-external-functionalities.json"));
+		final List<ExternalFunctionalityJson> externalFunctionalities = descriptors.getExternalFunctionalities();
+		Collections.sort(externalFunctionalities, (ExternalFunctionalityJson first, ExternalFunctionalityJson second) 
+				-> first.getName().compareTo(second.getName()));
+		
+		assertThat(externalFunctionalities).hasSize(1);
+		
+		assertThat(externalFunctionalities.get(0).getName()).isEqualTo("Spring");
+		assertThat(externalFunctionalities.get(0).getPackageMatchPattern()).isEqualTo("org.springframework.*");
+	}		
+	
 	private static String readSubModuleJson(String fileName) throws IOException {
 		try (BufferedReader buffer = new BufferedReader(new InputStreamReader(
-				SubModuleJsonTest.class.getResource(fileName).openStream(), "UTF8"))) {
+				JsonDescriptorReaderTest.class.getResource(fileName).openStream(), "UTF8"))) {
 			return buffer.lines().collect(Collectors.joining("\n"));			
 		}
 	}

@@ -14,7 +14,7 @@ import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.annotation.AnnotationDescriptorInfoFactory;
 import com.scheible.pocketsaw.impl.descriptor.annotation.FastClasspathScanner;
 import com.scheible.pocketsaw.impl.descriptor.annotation.SpringClasspathScanner;
-import com.scheible.pocketsaw.impl.descriptor.json.SubModuleJson;
+import com.scheible.pocketsaw.impl.descriptor.json.JsonDescriptorReader;
 import com.scheible.pocketsaw.impl.visualization.VisJsRenderer;
 import java.io.File;
 import java.io.IOException;
@@ -102,6 +102,11 @@ public class Pocketsaw {
 		return analize(loadSubModuleJson(subModulesJsonFile), packageDependencies, dependencyGraphHtmlFile);
 	}
 
+	public static AnalysisResult analize(final File subModulesJsonFile, final PackageDependencies packageDependencies,
+			final Optional<File> dependencyGraphHtmlFile) {
+		return analize(loadSubModuleJson(subModulesJsonFile), packageDependencies, dependencyGraphHtmlFile);
+	}
+
 	private static PackageDependencySource instantiate(final Class<? extends PackageDependencySource> packageDependencySourceClass) {
 		try {
 			return packageDependencySourceClass.newInstance();
@@ -125,7 +130,7 @@ public class Pocketsaw {
 	static DescriptorInfo loadSubModuleJson(final File subModulesJsonFile) {
 		final File canonicalSubModulesJsonFile = toCanonical(subModulesJsonFile);
 		try {
-			return SubModuleJson.read(canonicalSubModulesJsonFile);
+			return JsonDescriptorReader.read(canonicalSubModulesJsonFile);
 		} catch (IOException ex) {
 			throw new UncheckedIOException("An error occured while reading the sub modules from the JSON file '"
 					+ canonicalSubModulesJsonFile.getAbsolutePath() + "'!", ex);

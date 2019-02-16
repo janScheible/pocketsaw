@@ -1,5 +1,5 @@
 {
-    "submodules": [
+    "subModules": [
         {
             "name": "First",
             "packageName": "project.first",
