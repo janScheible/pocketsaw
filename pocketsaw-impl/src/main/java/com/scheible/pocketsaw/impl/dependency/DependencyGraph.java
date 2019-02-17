@@ -2,6 +2,7 @@ package com.scheible.pocketsaw.impl.dependency;
 
 import java.util.Set;
 import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
+import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 import java.util.HashMap;
@@ -19,12 +20,15 @@ public class DependencyGraph {
 
 	private final Set<PackageGroupDescriptor> packageGroups;
 	private final Set<Dependency> dependencies;
+	private final Map<SubModuleDescriptor, Set<String>> usedSubModuleTypes;
 
 	private final Map<PackageGroupDescriptor, Set<Dependency>> neighbors;
 
-	public DependencyGraph(Set<PackageGroupDescriptor> packageGroups, Set<Dependency> dependencies) {
+	public DependencyGraph(Set<PackageGroupDescriptor> packageGroups, Set<Dependency> dependencies,
+			final Map<SubModuleDescriptor, Set<String>> usedSubModuleTypes) {
 		this.packageGroups = unmodifiableSet(packageGroups);
 		this.dependencies = unmodifiableSet(dependencies);
+		this.usedSubModuleTypes = unmodifiableMap(usedSubModuleTypes);
 
 		Map<PackageGroupDescriptor, Set<Dependency>> neighbors = new HashMap<>();
 		for (Dependency dependency : dependencies) {
@@ -52,6 +56,10 @@ public class DependencyGraph {
 		} else {
 			return neighbors.get(packageGroup);
 		}
+	}
+
+	public Map<SubModuleDescriptor, Set<String>> getUsedSubModuleTypes() {
+		return usedSubModuleTypes;
 	}
 
 	public Optional<List<PackageGroupDescriptor>> getAnyDescriptorCycle() {

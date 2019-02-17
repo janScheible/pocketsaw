@@ -2,19 +2,21 @@ package com.scheible.pocketsaw.impl.code.jdeps;
 
 import com.scheible.pocketsaw.impl.code.DependencyFilter;
 import com.scheible.pocketsaw.impl.code.PackageDependencies;
+import com.scheible.pocketsaw.impl.code.PackageDependency;
+import com.scheible.pocketsaw.impl.code.TypeDependency;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -25,7 +27,8 @@ import java.util.function.Predicate;
 public class JdepsWrapper {
 	
 	private static PackageDependencies parseOutput(final List<String> lines, DependencyFilter dependencyFilter) {
-		final Map<Entry<String, String>, Integer> packageDependencies = new HashMap<>();
+		final Map<PackageDependency, Set<TypeDependency>> packageDependencies = new HashMap<>();
+		final Map<String, Set<String>> packageClasses = new HashMap<>();
 
 		final Function<String, String> packageNameExtractor = className -> {
 			return className.substring(0, className.lastIndexOf('.'));
@@ -42,13 +45,19 @@ public class JdepsWrapper {
 			final String dependentClass = lineParts[1].trim().split(" ")[0];
 			final String dependentPackageName = packageNameExtractor.apply(dependentClass);
 			
-			if (!packageName.equals(dependentPackageName) && !dependencyFilter.apply(className, dependentClass)) {
-				final Entry<String, String> dependency = new SimpleImmutableEntry<>(packageName, dependentPackageName);
-				packageDependencies.put(dependency, packageDependencies.computeIfAbsent(dependency, (key) -> 0) + 1);
+			if (!packageName.equals(dependentPackageName) && !dependencyFilter.testDependency(className, dependentClass)) {
+				final PackageDependency packageDependency = new PackageDependency(packageName, dependentPackageName);
+				final TypeDependency typeDependency = new TypeDependency(packageName, className, dependentPackageName, dependentClass);
+				
+				packageDependencies.computeIfAbsent(packageDependency, key -> new HashSet<>()).add(typeDependency);
+			}
+			
+			if(!dependencyFilter.testSingle(className)) {
+				packageClasses.computeIfAbsent(packageName, key -> new HashSet<>()).add(className);
 			}
 		}
 		
-		return PackageDependencies.withCodeDependencyCounts(packageDependencies);
+		return PackageDependencies.withClassLevelDependencies(packageDependencies, packageClasses);
 	}
 	
 	public static PackageDependencies run(final String relativeClassesDirectory, DependencyFilter dependencyFilter) {

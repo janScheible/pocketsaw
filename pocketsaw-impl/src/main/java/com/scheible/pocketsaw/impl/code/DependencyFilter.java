@@ -32,8 +32,12 @@ public class DependencyFilter {
 		}
 		return result;
 	}
+	
+	public boolean testSingle(String className) {
+		return testDependency("", className);
+	}
 
-	public boolean apply(String className, String dependentClass) {
+	public boolean testDependency(String className, String dependentClass) {
 		if (ignoredClassNames.contains(className) || ignoredClassNames.contains(dependentClass)) {
 			return true;
 		} else if (ignoreCoreJavaClasses && (dependentClass.startsWith("java.") || dependentClass.startsWith("javax."))) {

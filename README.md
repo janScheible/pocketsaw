@@ -3,6 +3,7 @@
 [pocketsaw-layered-sub-modules]: pocketsaw-layered-sub-modules.png "Pocketsaw layered sub-modules"
 [angular-tour-of-heroes-dependencies]: angular-tour-of-heroes-dependencies.png "Angular Tour of Heros Dependencies"
 [disid-multimodule-spring-boot]: disid-multimodule-spring-boot.png "DISID Spring Boot Multimodule"
+[pocketsaw-used-sub-module-types]: pocketsaw-used-sub-module-types.png "Pocketsaw used sub-module types"
 
 # Pocketsaw
 
@@ -33,6 +34,12 @@ In the layered sub modules view all allowed dependencies go from top to bottom.
 Horizontal or bottom to top dependencies are not allowed and marked red.
 
 ![pocketsaw-layered-sub-modules]
+
+In version 1.3.0 the used types per sub-module are available as a visualization.
+They represent the API exposed to other sub-modules.
+If a sub-module exposes many types its API is rather wide and might cause maintainability problems in the future.
+
+![pocketsaw-used-sub-module-types]
 
 ## Background
 

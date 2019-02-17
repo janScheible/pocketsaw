@@ -13,13 +13,17 @@ import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.Json;
 import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.JsonObject;
+import com.scheible.pocketsaw.impl.shaded.com.eclipsesource.json.JsonValue;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.util.AbstractMap;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class VisJsRenderer {
 
@@ -96,10 +100,12 @@ public class VisJsRenderer {
 
 		private final String nodeDataSet;
 		private final String edgeDataSet;
+		private final String usedSubModuleTypesJson;
 
-		public VisJsJson(String nodeDataSet, String edgeDataSet) {
+		public VisJsJson(String nodeDataSet, String edgeDataSet, String usedSubModuleTypesJson) {
 			this.nodeDataSet = nodeDataSet;
 			this.edgeDataSet = edgeDataSet;
+			this.usedSubModuleTypesJson = usedSubModuleTypesJson;
 		}
 
 		public String getEdgeDataSet() {
@@ -108,6 +114,10 @@ public class VisJsRenderer {
 
 		public String getNodeDataSet() {
 			return nodeDataSet;
+		}
+
+		public String getUsedSubModuleTypesJson() {
+			return usedSubModuleTypesJson;
 		}
 	}
 
@@ -139,10 +149,15 @@ public class VisJsRenderer {
 					label, width));
 		}
 
-		String nodesJson = nodes.stream().map(node -> node.toJsonObject()).collect(MinimalJsonCollector.toJson());
-		String edgesJson = edges.stream().map(edge -> edge.toJsonObject()).collect(MinimalJsonCollector.toJson());
+		String nodesJson = nodes.stream().map(node -> node.toJsonObject()).collect(JsonArrayCollector.toJson());
+		String edgesJson = edges.stream().map(edge -> edge.toJsonObject()).collect(JsonArrayCollector.toJson());
+		String usedSubModuleTypesJson = dependencyGraph.getUsedSubModuleTypes().entrySet().stream()
+				.sorted((first, second) -> first.getKey().getName().compareTo(second.getKey().getName()))
+				.map(e -> new AbstractMap.SimpleImmutableEntry<>(e.getKey().getName(), (JsonValue)Json.array(
+						e.getValue().stream().sorted().collect(Collectors.toList()).toArray(new String[0]))))
+				.collect(JsonMapCollector.toJson());
 
-		return new VisJsJson(nodesJson, edgesJson);
+		return new VisJsJson(nodesJson, edgesJson, usedSubModuleTypesJson);
 	}
 
 	public static void render(DependencyGraph dependencyGraph, File outputFile) {
@@ -151,7 +166,8 @@ public class VisJsRenderer {
 
 			final String html = readTemplateContent(VisJsRenderer.class.getResourceAsStream(TEMPLATE_FILE))
 					.replace("/*{nodes-array}*/", data.getNodeDataSet())
-					.replace("/*{edges-array}*/", data.getEdgeDataSet());
+					.replace("/*{edges-array}*/", data.getEdgeDataSet())
+					.replace("/*{used-sub-module-types-map}*/", data.getUsedSubModuleTypesJson());
 
 			Files.write(outputFile.toPath(), html.getBytes("UTF8"));
 		} catch (IOException ex) {

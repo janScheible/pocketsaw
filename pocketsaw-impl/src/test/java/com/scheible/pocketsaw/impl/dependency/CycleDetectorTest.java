@@ -1,11 +1,9 @@
 package com.scheible.pocketsaw.impl.dependency;
 
-import com.scheible.pocketsaw.impl.dependency.Dependency;
-import com.scheible.pocketsaw.impl.dependency.CycleDetector;
-import com.scheible.pocketsaw.impl.dependency.DependencyGraph;
 import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
@@ -33,7 +31,7 @@ public class CycleDetectorTest {
 				new Dependency(d, e, 0, Dependency.Origin.DESCRIPTOR),
 				new Dependency(e, c, 0, Dependency.Origin.DESCRIPTOR),
 				new Dependency(c, a, 0, Dependency.Origin.DESCRIPTOR)
-		)));
+		)), new HashMap<>());
 
 		// NOTE It is non determenistric!
 		// assertThat(CycleDetector.findAny(graph, (dependency) -> true)).hasValue(Arrays.asList(a, b, d, e, c));

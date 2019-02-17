@@ -193,7 +193,7 @@
 
                     if (isIllegalDependency) {
                         new LeaderLine(fromEl, toEl, withLabel(illegalDependecyOptions, dependency.weight + '', isStraightDown));
-                    } else {
+                    } else if(dependency.weight) {
                         if (!hoverMapping[dependency.from]) {
                             hoverMapping[dependency.from] = LeaderLine.mouseHoverAnchor(fromEl,
                                 mouseHoverAnchorOptions);
@@ -246,6 +246,59 @@
             text-align: center;
         }
     </style>
+	
+	 <script id="used-sub-module-types-script">
+		window.pocketsaw.showUsedSubModuleTypes = function (usedSubModuleTypes) {
+			var subModuleListEl = document.createElement('ul');
+			var featureIsSupported = true;
+			Object.keys(usedSubModuleTypes).forEach(function (subModuleName) {
+				var subModuleItemEl = document.createElement('li');
+				subModuleItemEl.innerText = subModuleName;
+				subModuleListEl.appendChild(subModuleItemEl);
+				
+				var usedSubModuleTypesListEl = document.createElement('ul');
+				Array.prototype.forEach.call(usedSubModuleTypes[subModuleName], function (type) {
+					var usedTypeItemEl = document.createElement('li');
+					usedTypeItemEl.innerText = type;
+					
+					// NOTE Pretty hacky way to figure out that the dependency source does not support type-level information...
+					if(type.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i) !== null) {
+						featureIsSupported = false;
+						return false;
+					}
+					
+					usedSubModuleTypesListEl.appendChild(usedTypeItemEl);
+				});
+				subModuleItemEl.appendChild(usedSubModuleTypesListEl);
+
+				return featureIsSupported;
+			});
+			
+			var parentEl = document.getElementById('visualization');
+			parentEl.classList.add('used-sub-module-types');
+			
+			if(featureIsSupported) {
+				parentEl.appendChild(subModuleListEl);
+
+				document.documentElement.style.overflow = 'auto';
+				document.body.style['overflow-y'] = 'auto';
+			} else {
+				parentEl.innerText = "The dependency source does not support type-level information."
+				parentEl.classList.add('no-type-level-information');
+			}
+		}
+	</script>
+	
+	<style id="used-sub-module-types-style">
+		.used-sub-module-types {
+			display: flex;
+			justify-content: center;
+		}
+		
+		.no-type-level-information {
+			padding-top: 28px;
+		}
+	</style>
 
     <style id="generic-style">
         html, body {
@@ -285,6 +338,10 @@
             <input name="visualization-type" type="radio" value="layered-sub-modules">
             Layered sub-modules<br>
         </li>
+		<li>
+            <input name="visualization-type" type="radio" value="used-sub-module-types">
+            Used sub-module types<br>
+		</li>
     </ul>
 
     <div id="visualization"></div>
@@ -308,7 +365,7 @@
                 var urlParams = new URLSearchParams(location.hash ? location.hash.substring(1) : '');
                 // parse state from URL
                 var state = {
-                    'visualization-type': getValue(urlParams, 'visualization-type', ['graph', 'layered-sub-modules'], 'graph'),
+                    'visualization-type': getValue(urlParams, 'visualization-type', ['graph', 'layered-sub-modules', 'used-sub-module-types'], 'graph'),
                     'graph-include-external-functionalities': getValue(urlParams, 'graph-include-external-functionalities', ['true', 'false'], 'true') === 'true',
                     'graph-use-hierarchical-layout': getValue(urlParams, 'graph-use-hierarchical-layout', ['true', 'false'], 'false') === 'true'
                 };
@@ -346,12 +403,15 @@
 
                 var nodes = identity(/*{nodes-array}*/);
                 var edges = identity(/*{edges-array}*/);
+                var usedSubModuleTypes = identity(/*{used-sub-module-types-map}*/);
 
                 if (state['visualization-type'] === 'graph') {
                     pocketsaw.showGraph(nodes, edges, state['graph-include-external-functionalities'], state['graph-use-hierarchical-layout']);
-                } else {
+                } else if (state['visualization-type'] === 'layered-sub-modules') { 
                     pocketsaw.showLayeredSubModules(nodes, edges);
-                }
+                } else if (state['visualization-type'] === 'used-sub-module-types') { 
+					pocketsaw.showUsedSubModuleTypes(usedSubModuleTypes);
+				}
             })();
     </script>
 </body>

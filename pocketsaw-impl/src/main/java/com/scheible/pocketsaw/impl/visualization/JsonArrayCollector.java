@@ -16,10 +16,10 @@ import java.util.stream.Collector;
  *
  * @author sj
  */
-class MinimalJsonCollector implements Collector<JsonValue, JsonArray, String> {
+class JsonArrayCollector implements Collector<JsonValue, JsonArray, String> {
 	
-	static MinimalJsonCollector toJson() {
-		return new MinimalJsonCollector();
+	static JsonArrayCollector toJson() {
+		return new JsonArrayCollector();
 	}
 
 	@Override
