@@ -26,31 +26,37 @@ public class CycleDetector {
 		Set<PackageGroupDescriptor> blackSet = new HashSet<>();
 
 		for (PackageGroupDescriptor vertex : graph.getPackageGroups()) {
-			if (whiteSet.contains(vertex) && findAny(graph, dependencyFilter, vertex, null, whiteSet, greyPreviousMapping, blackSet)) {
-				return Optional.of(toCycleList(greyPreviousMapping));
+			if (whiteSet.contains(vertex)) {
+				Optional<PackageGroupDescriptor> firstCycleVertex = findAny(graph, dependencyFilter, vertex, null, whiteSet, greyPreviousMapping, blackSet);
+				if (firstCycleVertex.isPresent()) {
+					return Optional.of(toCycleList(firstCycleVertex.get(), greyPreviousMapping));
+				}
 			}
 		}
 
 		return Optional.empty();
 	}
 
-	private static List<PackageGroupDescriptor> toCycleList(Map<PackageGroupDescriptor, PackageGroupDescriptor> greyPreviousMapping) {
+	private static List<PackageGroupDescriptor> toCycleList(PackageGroupDescriptor firstCycleVertex, Map<PackageGroupDescriptor, PackageGroupDescriptor> greyPreviousMapping) {
 		Map<PackageGroupDescriptor, PackageGroupDescriptor> greyNextMapping = greyPreviousMapping.entrySet().stream()
 				.collect(Collectors.toMap(Entry::getValue, Entry::getKey));
-		
+
 		List<PackageGroupDescriptor> cycle = new ArrayList<>();
-		PackageGroupDescriptor current = greyNextMapping.get(null);
-		while(current != null) {
+		PackageGroupDescriptor current = firstCycleVertex;
+		while (current != null) {
 			cycle.add(current);
 			current = greyNextMapping.get(current);
 		}
-		cycle.add(greyNextMapping.get(null));
-		
+		cycle.add(firstCycleVertex);
+
 		return Collections.unmodifiableList(cycle);
 	}
 
-	private static boolean findAny(DependencyGraph graph, Predicate<Dependency> dependencyFilter, 
-			PackageGroupDescriptor vertex, PackageGroupDescriptor previous, Set<PackageGroupDescriptor> whiteSet, 
+	/**
+	 * @return The first vertex of the found cycle that was already visited.
+	 */
+	private static Optional<PackageGroupDescriptor> findAny(DependencyGraph graph, Predicate<Dependency> dependencyFilter,
+			PackageGroupDescriptor vertex, PackageGroupDescriptor previous, Set<PackageGroupDescriptor> whiteSet,
 			Map<PackageGroupDescriptor, PackageGroupDescriptor> greyPreviousMapping,
 			Set<PackageGroupDescriptor> blackSet) {
 		// NOTE Swtich color from white to gray.
@@ -58,13 +64,13 @@ public class CycleDetector {
 		greyPreviousMapping.put(vertex, previous);
 
 		for (Dependency dependency : graph.getNeighbors(vertex)) {
-			if(!dependencyFilter.test(dependency)) {
+			if (!dependencyFilter.test(dependency)) {
 				continue;
 			}
-			
+
 			// NOTE Check if this vertex is present in gray set, means cycle is found.
 			if (greyPreviousMapping.keySet().contains(dependency.getTarget())) {
-				return true;
+				return Optional.of(dependency.getTarget());
 			}
 
 			// NOTE Check if this vertex is present in black set, means this vertex is already done.
@@ -73,15 +79,16 @@ public class CycleDetector {
 			}
 
 			// NOTE Do traversal from this vertex.
-			if (findAny(graph, dependencyFilter, dependency.getTarget(), vertex, whiteSet, greyPreviousMapping, blackSet)) {
-				return true;
+			Optional<PackageGroupDescriptor> firstCycleVertex = findAny(graph, dependencyFilter, dependency.getTarget(), vertex, whiteSet, greyPreviousMapping, blackSet);
+			if (firstCycleVertex.isPresent()) {
+				return firstCycleVertex;
 			}
 		}
 
 		// NOTE If here means cycle is not found from this vertex, make if black from gray.
 		greyPreviousMapping.remove(vertex);
 		blackSet.add(vertex);
-		
-		return false;
+
+		return Optional.empty();
 	}
 }
