@@ -56,7 +56,7 @@ The main differences are:
 
 The Maven artifacts can't be found in an official repository yet ([JitPack](https://jitpack.io) usage is pending until [this issue](https://github.com/jitpack/jitpack.io/issues/2872) is resolved).
 
-For a local installation the following is enough:
+For a local installation the following is enough (with an JDK >= 8):
 
 ```
 git clone git@github.com:janScheible/pocketsaw.git
@@ -81,7 +81,7 @@ and
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -207,7 +207,7 @@ Next it is easiest to add the following to the `scripts` section of the `package
 
 Pocketsaw can then be run via the  CLI:
 ```
-java -jar pocketsaw-1.3.1.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.3.2.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Angular Tour Of Heros Example
@@ -226,7 +226,7 @@ That means instead of using annotations in the code an external `sub-module.json
 The use case is to analyze an unmodified code base that does (not yet) use Pocketsaw.
 
 ```
-java -jar pocketsaw-1.3.1.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.3.2.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Spring Boot Multimodule Example

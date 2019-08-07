@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  *
@@ -67,14 +66,8 @@ public class JdepsWrapper {
 	public static PackageDependencies run(final String relativeClassesDirectory, final Optional<File> workingDirectory,
 			final Optional<String> classpath, final DependencyFilter dependencyFilter) {
 		try {
-			final Predicate<String> isNotEmpty = str -> str != null && !str.trim().isEmpty();
-
-			final String envJavaHome = System.getenv("JAVA_HOME");
-			final String propJavaHome = System.getProperty("java.home");
-
-			final String jdepsDirectory = isNotEmpty.test(envJavaHome) ? envJavaHome + File.separator + "bin" + File.separator
-					: isNotEmpty.test(propJavaHome) ? propJavaHome + File.separator + ".." + File.separator + "bin" + File.separator
-					: "";
+			String jdepsDirectory = JdepsLocator.locate(System.getenv("JAVA_HOME"), System.getProperty("java.home"), 
+					file -> file.exists()).orElse("");
 
 			final List<String> command = new ArrayList<>(Arrays.asList(jdepsDirectory + "jdeps", "-v"));
 			if(classpath.isPresent()) {
