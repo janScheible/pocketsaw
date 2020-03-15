@@ -13,11 +13,16 @@ public class ClasspathScanningLibrariesComparisonTest {
 	public void compareScanningResult() {
 		ClasspathScanner springClasspathScanner = SpringClasspathScanner.create(this.getClass());
 		ClasspathScanner fastClasspathScanner = FastClasspathScanner.create(this.getClass());
+		ClasspathScanner classgraphClasspathScanner = ClassgraphClasspathScanner.create(this.getClass());
 
 		assertThat(springClasspathScanner.getSubModuleAnnotatedClassNames())
 				.containsOnlyElementsOf(fastClasspathScanner.getSubModuleAnnotatedClassNames());
-
+		assertThat(fastClasspathScanner.getSubModuleAnnotatedClassNames())
+				.containsOnlyElementsOf(classgraphClasspathScanner.getSubModuleAnnotatedClassNames());
+		
 		assertThat(springClasspathScanner.getExternalFunctionalityAnnotatedClassNames())
 				.containsOnlyElementsOf(fastClasspathScanner.getExternalFunctionalityAnnotatedClassNames());
+		assertThat(fastClasspathScanner.getExternalFunctionalityAnnotatedClassNames())
+				.containsOnlyElementsOf(classgraphClasspathScanner.getExternalFunctionalityAnnotatedClassNames());
 	}
 }

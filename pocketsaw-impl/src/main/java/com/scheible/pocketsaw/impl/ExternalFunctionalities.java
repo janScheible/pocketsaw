@@ -16,4 +16,8 @@ public class ExternalFunctionalities {
 	@ExternalFunctionality(packageMatchPattern = "io.github.lukehutch.fastclasspathscanner.**")
 	public static class FastClasspathScanner {
 	}
+	
+	@ExternalFunctionality(packageMatchPattern = "io.github.classgraph.**")
+	public static class Classgraph {
+	}
 }

@@ -22,4 +22,9 @@ public @interface SubModule {
 	boolean includeSubPackages() default true;
 	
 	String color() default "orange";
+	
+	/**
+	 * The sub-module root package defaults to the package the annotated class resides in. Can be overriden with this attribute.
+	 */
+	Class<?> basePackageClass() default Void.class;
 }

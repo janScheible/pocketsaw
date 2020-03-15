@@ -15,7 +15,7 @@ public abstract class ClasspathScanner {
 	private final Set<String> subModuleAnnotatedClassNames;
 	private final Set<String> externalFunctionalityAnnotatedClassNames;
 
-	protected ClasspathScanner(Set<String> subModuleAnnotatedClassNames, Set<String> externalFunctionalityAnnotatedClassNames) {
+	protected ClasspathScanner(final Set<String> subModuleAnnotatedClassNames, final Set<String> externalFunctionalityAnnotatedClassNames) {
 		this.subModuleAnnotatedClassNames = unmodifiableSet(subModuleAnnotatedClassNames);
 		this.externalFunctionalityAnnotatedClassNames = unmodifiableSet(externalFunctionalityAnnotatedClassNames);
 	}

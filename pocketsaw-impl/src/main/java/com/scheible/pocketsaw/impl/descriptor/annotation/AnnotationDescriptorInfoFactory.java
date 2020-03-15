@@ -82,8 +82,11 @@ public class AnnotationDescriptorInfoFactory {
 			}
 		}
 
+		final String packageName = annotation.basePackageClass().equals(Void.class)
+				? subModuleAnnotatedClass.getPackage().getName() : annotation.basePackageClass().getPackage().getName();
+
 		return new SubModuleDescriptor(subModuleAnnotatedClass.getName(), PackageGroupNameProvider.getName(subModuleAnnotatedClass),
-				subModuleAnnotatedClass.getPackage().getName(), annotation.includeSubPackages(), annotation.color(),
+				packageName, annotation.includeSubPackages(), annotation.color(),
 				usedSubModuleIds, usedExternalFunctionalities);
 	}
 

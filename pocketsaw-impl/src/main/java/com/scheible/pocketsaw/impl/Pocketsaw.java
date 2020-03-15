@@ -12,6 +12,7 @@ import com.scheible.pocketsaw.impl.descriptor.annotation.ClasspathScanner;
 import com.scheible.pocketsaw.impl.descriptor.DescriptorInfo;
 import com.scheible.pocketsaw.impl.descriptor.PackageGroupDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.annotation.AnnotationDescriptorInfoFactory;
+import com.scheible.pocketsaw.impl.descriptor.annotation.DependencyAwareClasspathScanner;
 import com.scheible.pocketsaw.impl.descriptor.annotation.FastClasspathScanner;
 import com.scheible.pocketsaw.impl.descriptor.annotation.SpringClasspathScanner;
 import com.scheible.pocketsaw.impl.descriptor.json.JsonDescriptorReader;
@@ -19,6 +20,7 @@ import com.scheible.pocketsaw.impl.visualization.VisJsRenderer;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
@@ -69,11 +71,20 @@ public class Pocketsaw {
 				classpathScanner.getExternalFunctionalityAnnotatedClassNames().stream(),
 				Arrays.asList(SubModule.class.getName(), ExternalFunctionality.class.getName()).stream()
 		).flatMap(identity()).collect(Collectors.toSet()), true);
-		final PackageDependencies packageDependencies = JdepsWrapper.run(CLASS_DIRECTORY, dependencyFilter);
+		boolean dependenciesFromClasspathScanner = classpathScanner instanceof DependencyAwareClasspathScanner 
+				&& ((DependencyAwareClasspathScanner)classpathScanner).doDependencyScan();
+		
+		final PackageDependencies packageDependencies = dependenciesFromClasspathScanner
+				?((DependencyAwareClasspathScanner)classpathScanner).getDependencies()
+				: JdepsWrapper.run(CLASS_DIRECTORY, dependencyFilter);
 
 		final DescriptorInfo descriptorInfo = AnnotationDescriptorInfoFactory.createFromClasspath(classpathScanner);
 
 		return analize(descriptorInfo, packageDependencies, Optional.empty());
+	}
+	
+	public static AnalysisResult analizeClasspath(DependencyAwareClasspathScanner classpathScanner) {
+		return analizeCurrentProject(classpathScanner.enableDependencyScan());
 	}
 
 	/**
@@ -109,8 +120,9 @@ public class Pocketsaw {
 
 	private static PackageDependencySource instantiate(final Class<? extends PackageDependencySource> packageDependencySourceClass) {
 		try {
-			return packageDependencySourceClass.newInstance();
-		} catch (IllegalAccessException | InstantiationException ex) {
+			return packageDependencySourceClass.getConstructor().newInstance();
+		} catch (IllegalAccessException | InstantiationException | IllegalArgumentException 
+				| NoSuchMethodException | InvocationTargetException ex) {
 			throw new IllegalStateException(ex);
 		}
 	}

@@ -31,6 +31,11 @@ public class SubModuleDescriptorTest {
 	private static class TestUsedSubModule {
 
 	}
+	
+	@SubModule(basePackageClass = Object.class)
+	private static class TestSubModuleWithDifferentBasePackage {
+		
+	}
 
 	@Test
 	public void fromAnnotatedClass() {
@@ -39,6 +44,7 @@ public class SubModuleDescriptorTest {
 		assertThat(descriptor.getName()).isEqualTo(PackageGroupNameProvider.getName(TestSubModule.class));
 		assertThat(descriptor.getUsedExternalFunctionalities()).hasSize(1);
 		assertThat(descriptor.getUsedSubModuleIds()).hasSize(1);
+		assertThat(descriptor.getPackageMatchPatterns()).containsOnly("com.scheible.pocketsaw.impl.descriptor.annotation.*");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -65,4 +71,11 @@ public class SubModuleDescriptorTest {
 	public void fromSubModuleWithValueAndUses() {
 		AnnotationDescriptorInfoFactory.fromAnnotatedSubModuleClass(TestSubModuleWithValueAndUses.class);
 	}	
+	
+	@Test
+	public void fromAnnotatedClassWithDifferentBasePackage() {
+		SubModuleDescriptor descriptor = AnnotationDescriptorInfoFactory.fromAnnotatedSubModuleClass(TestSubModuleWithDifferentBasePackage.class);
+
+		assertThat(descriptor.getPackageMatchPatterns()).containsOnly("java.lang.**");
+	}
 }
