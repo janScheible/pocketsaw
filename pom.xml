@@ -4,7 +4,7 @@
 
 	<groupId>com.scheible.pocketsaw</groupId>
 	<artifactId>pocketsaw</artifactId>
-	<version>1.4.0</version>
+	<version>1.5.0</version>
 
 	<packaging>pom</packaging>
 	<name>Pocketsaw</name>
@@ -31,6 +31,7 @@
 		<module>pocketsaw-cli-exec</module>
 		<module>pocketsaw-cli-build</module>
 		<module>pocketsaw-spring-boot-jar</module>
+		<module>pocketsaw-es6-modules</module>
 	</modules>
 
 	<scm>

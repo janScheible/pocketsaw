@@ -8,36 +8,29 @@
 		<version>1.5.0</version>
 	</parent>
 
-	<groupId>com.scheible.pocketsaw.impl</groupId>
-	<artifactId>pocketsaw-impl</artifactId>
+	<groupId>com.scheible.pocketsaw.es6modules</groupId>
+	<artifactId>pocketsaw-es6-modules</artifactId>
 
 	<packaging>jar</packaging>
-	<name>Pocketsaw Impl</name>
+	<name>Pocketsaw ES6 Modules Support</name>
 
 	<dependencies>
 		<dependency>
-			<groupId>com.scheible.pocketsaw.api</groupId>
-			<artifactId>pocketsaw-api</artifactId>
-			<version>1.2.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.github.lukehutch</groupId>
-			<artifactId>fast-classpath-scanner</artifactId>
-			<version>2.21</version>
-			<optional>true</optional>
+			<groupId>com.scheible.pocketsaw.impl</groupId>
+			<artifactId>pocketsaw-impl</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>5.0.6.RELEASE</version>
-			<optional>true</optional>
+			<groupId>com.scheible</groupId>
+			<artifactId>javascript-es2020-parser</artifactId>
+			<version>0.5.0</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>io.github.classgraph</groupId>
 			<artifactId>classgraph</artifactId>
 			<version>4.8.90</version>
-			<optional>true</optional>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

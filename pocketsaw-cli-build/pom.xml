@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>pocketsaw</artifactId>
 		<groupId>com.scheible.pocketsaw</groupId>
-		<version>1.4.0</version>
+		<version>1.5.0</version>
 	</parent>
 
 	<groupId>com.scheible.pocketsaw.clibuild</groupId>
@@ -28,6 +28,11 @@
 		<dependency>
 			<groupId>com.scheible.pocketsaw.springbootjar</groupId>
 			<artifactId>pocketsaw-spring-boot-jar</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.scheible.pocketsaw.es6modules</groupId>
+			<artifactId>pocketsaw-es6-modules</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

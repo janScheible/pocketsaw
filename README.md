@@ -4,6 +4,8 @@
 [angular-tour-of-heroes-dependencies]: angular-tour-of-heroes-dependencies.png "Angular Tour of Heros Dependencies"
 [disid-multimodule-spring-boot]: disid-multimodule-spring-boot.png "DISID Spring Boot Multimodule"
 [pocketsaw-used-sub-module-types]: pocketsaw-used-sub-module-types.png "Pocketsaw used sub-module types"
+[threejs-es6-modules]: threejs-es6-modules.png "three.js ES6 Modules"
+[unit-test-es6-modules-dependency-graph]: unit-test-es6-modules-dependency-graph.png "Unit Test ES& Modules Dependency Graph"
 
 # Pocketsaw
 
@@ -58,13 +60,13 @@ The main differences are:
 
 The Maven artifacts can't be found in an official repository yet ([JitPack](https://jitpack.io) usage is pending until [this issue](https://github.com/jitpack/jitpack.io/issues/2872) is resolved).
 
-For a local installation the following is enough (with an JDK >= 8):
+For building locally these are the prerequisites:
 
-```
-git clone git@github.com:janScheible/pocketsaw.git
-cd pocketsaw
-mvn install
-```
+1. at least JDK 8
+1. a recent Maven
+1. `mvn clean install` of [javascript-es2020-parser 0.5.0](https://github.com/janScheible/javascript-es2020-parser/tree/0.5.0)
+
+And then `mvn clean install` in the working directory of this repository.
 
 ## Workflow for using Pocketsaw in a Java project
 
@@ -76,7 +78,7 @@ Add
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -89,7 +91,7 @@ If not a Spring based project add
 <dependency>
     <groupId>io.github.classgraph</groupId>
     <artifactId>classgraph</artifactId>
-    <version>4.8.65</version>
+    <version>4.8.90</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -167,9 +169,9 @@ The following conventions might be used:
   ```java
   public class SubModules {
 
-    @SubModule(basePackageClass = SharedCodeBasePackageClass.class)
-    public static class SharedCodeLibrary {
-    }
+      @SubModule(basePackageClass = SharedCodeBasePackageClass.class)
+      public static class SharedCodeLibrary {
+      }
   }
 
   ```
@@ -242,7 +244,7 @@ Next it is easiest to add the following to the `scripts` section of the `package
 Pocketsaw can then be run via the CLI:
 
 ```
-java -jar pocketsaw-1.4.0.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.5.0.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Angular Tour Of Heros Example
@@ -261,7 +263,7 @@ That means instead of using annotations in the code an external `sub-module.json
 The use case is to analyze an unmodified code base that does (not yet) use Pocketsaw.
 
 ```
-java -jar pocketsaw-1.4.0.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.5.0.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Spring Boot Multimodule Example
@@ -269,6 +271,57 @@ java -jar pocketsaw-1.4.0.jar sub-module.json target/spring-boot-app.jar spring-
 In the following the structure of a [Spring Boot Multimodule](https://github.com/DISID/disid-proofs/tree/master/spring-boot-multimodule) project is visualized:
 
 ![disid-multimodule-spring-boot]
+
+## Using Pocketsaw in a ES6 JavaScript project
+
+Since version 1.5.0 of Pocketsaw ES6 JavaScript projects are natively supported.
+That means Dependency Cruiser is not required and therefore no Node.js installation at all is needed.
+
+```
+java -jar pocketsaw-1.5.0.jar sub-module.json ./src es6-modules:print-bundle-report=true pocketsaw-dependency-graph.html
+```
+
+Or invocation in a Java unit test:
+```java
+final Es6ModulesSource es6ModulesSource = new Es6ModulesSource();
+
+result = Pocketsaw.analize(new File("./src/main/frontend/sub-modules.json"),
+        es6ModulesSource.read(new File("./src/main/frontend"), printBundleReport(new HashSet<>())),
+        Optional.of(new File("./target/pocketsaw-frontend-dependency-graph.html")));
+```
+
+### ES6 JavaScript modules example
+
+In the following the structure of the [Three.js 3D library](https://github.com/mrdoob/three.js) is visualized:
+
+![threejs-es6-modules]
+
+### Bundle Report
+
+The bundle report is an experimental analysis of frontend code.
+It searches for a single sub-module with only outgoing dependencies.
+This sub-module is treated as the root of the dependency graph.
+Every dynamic `import` in the graph is then the entry point of a lazy loaded route and therefor starts a bundle.
+All sub-modules that belong to more than a single bundle are assigned to the default bundle.
+
+The following example sub-module dependency graph from the unit tests results in the bundle report shown under the graph.
+
+![unit-test-es6-modules-dependency-graph]
+
+```
+Module bundle report:
+ * app                    *default*
+ * button                 first-page-bundle
+ * first-page             first-page-bundle
+ * first-page-component   first-page-bundle
+ * label                  *default* (second-page-bundle, first-page-bundle)
+ * router                 *default*
+ * second-page            second-page-bundle
+ * second-page-component  second-page-bundle
+ * util                   *default* (second-page-bundle, first-page-bundle)
+```
+
+The final bundled app has then 3 bundles: `*default*` (which is loaded eagerly) and 2 lazy loaded ones (`first-page-bundle` and `second-page-bundle`).
 
 ## CLI
 
@@ -350,6 +403,12 @@ Optional parameters:
 
 - `keep-temp-dir-contents`: Skips deletion of used temp directory
 - `temp-dir-name`: Custom temp directory name instead of random UUID
+
+#### ES6 Modules dependency information source
+
+Optional parameters:
+
+- `print-bundle-report`: Boolean parameter for printing the bundle report to the console
 
 ### Maven usage
 
