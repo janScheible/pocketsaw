@@ -23,6 +23,8 @@ public class Es6ModulesSourceTest {
 
 	@Test
 	public void testDependencies() {
+		final String prefix = File.separatorChar == '/' ? "/" : "c:/";
+
 		final String basePath = Es6ModulesSourceTest.class.getPackage().getName().replaceAll(Pattern.quote("."), "/");
 
 		try (ScanResult scanResult = new ClassGraph().whitelistPaths(basePath).scan()) {
@@ -31,14 +33,14 @@ public class Es6ModulesSourceTest {
 							.map(r -> {
 								try {
 									final String[] pathParts = r.getPath().split(Pattern.quote("/"));
-									return new JavaScriptFile(Paths.get("c:\\", pathParts), r.getContentAsString());
+									return new JavaScriptFile(Paths.get(prefix, pathParts), r.getContentAsString());
 								} catch (IOException ex) {
 									throw new UncheckedIOException(ex);
 								}
 							});
 			
 			final Es6ModulesSource es6ModulesSource = new Es6ModulesSource(javaScriptFileWalker);
-			final PackageDependencies dependencies = es6ModulesSource.read(new File("c:\\", basePath));
+			final PackageDependencies dependencies = es6ModulesSource.read(new File(prefix, basePath));
 
 			assertThat(dependencies.keySet()).hasSize(3);
 			assertThat(dependencies.get("es6modules")).containsOnly("es6modules.first");
