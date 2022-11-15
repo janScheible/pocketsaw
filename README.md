@@ -78,7 +78,7 @@ Add
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -244,7 +244,7 @@ Next it is easiest to add the following to the `scripts` section of the `package
 Pocketsaw can then be run via the CLI:
 
 ```
-java -jar pocketsaw-1.5.1.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.5.2.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Angular Tour Of Heros Example
@@ -263,7 +263,7 @@ That means instead of using annotations in the code an external `sub-module.json
 The use case is to analyze an unmodified code base that does (not yet) use Pocketsaw.
 
 ```
-java -jar pocketsaw-1.5.1.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.5.2.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Spring Boot Multimodule Example
@@ -274,11 +274,11 @@ In the following the structure of a [Spring Boot Multimodule](https://github.com
 
 ## Using Pocketsaw in a ES6 JavaScript project
 
-Since version 1.5.1 of Pocketsaw ES6 JavaScript projects are natively supported.
+Since version 1.5.0 of Pocketsaw ES6 JavaScript projects are natively supported.
 That means Dependency Cruiser is not required and therefore no Node.js installation at all is needed.
 
 ```
-java -jar pocketsaw-1.5.1.jar sub-module.json ./src es6-modules:print-bundle-report=true pocketsaw-dependency-graph.html
+java -jar pocketsaw-1.5.2.jar sub-module.json ./src es6-modules:print-bundle-report=true pocketsaw-dependency-graph.html
 ```
 
 Or invocation in a Java unit test:
