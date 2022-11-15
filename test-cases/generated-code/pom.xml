@@ -47,7 +47,7 @@
 		<dependency>
 			<groupId>com.scheible.pocketsaw.impl</groupId>
 			<artifactId>pocketsaw-impl</artifactId>
-			<version>1.5.2-SNAPSHOT</version>
+			<version>1.5.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
