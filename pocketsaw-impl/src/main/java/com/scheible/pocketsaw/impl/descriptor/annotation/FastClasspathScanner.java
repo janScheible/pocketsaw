@@ -14,14 +14,19 @@ import java.util.stream.Collectors;
  */
 public class FastClasspathScanner extends ClasspathScanner {
 
-	private FastClasspathScanner(Set<String> subModuleAnnotatedClassNames, Set<String> externalFunctionalityAnnotatedClassNames) {
+	private final String basePackage;
+
+	private FastClasspathScanner(Class<?> basePackageClass, Set<String> subModuleAnnotatedClassNames, 
+			Set<String> externalFunctionalityAnnotatedClassNames) {
 		super(subModuleAnnotatedClassNames, externalFunctionalityAnnotatedClassNames);
+
+		this.basePackage = basePackageClass.getPackage().getName();
 	}
 
 	public static ClasspathScanner create(Class<?> basePackageClass) {
 		ScanResult scanResult = new io.github.lukehutch.fastclasspathscanner.FastClasspathScanner(basePackageClass.getPackage().getName()).scan();
 
-		return new FastClasspathScanner(findClasses(scanResult, SubModule.class),
+		return new FastClasspathScanner(basePackageClass, findClasses(scanResult, SubModule.class),
 				findClasses(scanResult, ExternalFunctionality.class));
 
 	}
@@ -32,4 +37,8 @@ public class FastClasspathScanner extends ClasspathScanner {
 				.filter(TEST_CLASS_FILTER).collect(Collectors.toSet());
 	}
 
+	@Override
+	public String getBasePackage() {
+		return basePackage;
+	}
 }

@@ -10,10 +10,12 @@ import java.util.Set;
  */
 public class DependencyFilter {
 
+	private final Set<String> basePackages;
 	private final Set<String> ignoredClassNames;
 	private final boolean ignoreCoreJavaClasses;
 
-	public DependencyFilter(Set<String> ignoredClassNames, boolean ignoreCoreJavaClasses) {
+	public DependencyFilter(Set<String> basePackages, Set<String> ignoredClassNames, boolean ignoreCoreJavaClasses) {
+		this.basePackages = basePackages;
 		this.ignoredClassNames = Collections.unmodifiableSet(enrichWithTopLevelClasses(ignoredClassNames));
 		this.ignoreCoreJavaClasses = ignoreCoreJavaClasses;
 	}
@@ -38,7 +40,11 @@ public class DependencyFilter {
 	}
 
 	public boolean testDependency(String className, String dependentClass) {
-		if (ignoredClassNames.contains(className) || ignoredClassNames.contains(dependentClass)) {
+		final boolean basePackagesConsideredClass = basePackages.stream()
+				.anyMatch(basePackage -> className.startsWith(basePackage));
+		if(!"".equals(className) && !basePackagesConsideredClass) {
+			return true;
+		} else if (ignoredClassNames.contains(className) || ignoredClassNames.contains(dependentClass)) {
 			return true;
 		} else if (ignoreCoreJavaClasses && (dependentClass.startsWith("java.") || dependentClass.startsWith("javax."))) {
 			return true;

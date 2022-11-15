@@ -23,6 +23,8 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import static java.util.function.Function.identity;
@@ -66,11 +68,12 @@ public class Pocketsaw {
 	private static final String GRAPH_HTML_OUTPUT_FILE = "./target/pocketsaw-dependency-graph.html";
 
 	public static AnalysisResult analizeCurrentProject(ClasspathScanner classpathScanner) {
-		final DependencyFilter dependencyFilter = new DependencyFilter(Stream.of(
-				classpathScanner.getSubModuleAnnotatedClassNames().stream(),
-				classpathScanner.getExternalFunctionalityAnnotatedClassNames().stream(),
-				Arrays.asList(SubModule.class.getName(), ExternalFunctionality.class.getName()).stream()
-		).flatMap(identity()).collect(Collectors.toSet()), true);
+		final DependencyFilter dependencyFilter = new DependencyFilter(
+				new HashSet<>(Arrays.asList(classpathScanner.getBasePackage())), Stream.of(
+						classpathScanner.getSubModuleAnnotatedClassNames().stream(),
+						classpathScanner.getExternalFunctionalityAnnotatedClassNames().stream(),
+						Arrays.asList(SubModule.class.getName(), ExternalFunctionality.class.getName()).stream()
+				).flatMap(identity()).collect(Collectors.toSet()), true);
 		boolean dependenciesFromClasspathScanner = classpathScanner instanceof DependencyAwareClasspathScanner 
 				&& ((DependencyAwareClasspathScanner)classpathScanner).doDependencyScan();
 		

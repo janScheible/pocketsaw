@@ -9,6 +9,7 @@ import com.scheible.pocketsaw.impl.descriptor.annotation.DependencyAwareClasspat
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import static java.util.function.Function.identity;
 import java.util.stream.Collectors;
@@ -27,11 +28,12 @@ public class CodeDependencySourcesComparisonTest {
 		final DependencyAwareClasspathScanner classpathScanner = ClassgraphClasspathScanner.create(Pocketsaw.class);
 		final PackageDependencies classgraphDependencies = classpathScanner.enableDependencyScan().getDependencies();
 
-		final DependencyFilter dependencyFilter = new DependencyFilter(Stream.of(
-				classpathScanner.getSubModuleAnnotatedClassNames().stream(),
-				classpathScanner.getExternalFunctionalityAnnotatedClassNames().stream(),
-				Arrays.asList(SubModule.class.getName(), ExternalFunctionality.class.getName()).stream()
-		).flatMap(identity()).collect(Collectors.toSet()), true);
+		final DependencyFilter dependencyFilter = new DependencyFilter(
+				new HashSet<>(Arrays.asList(Pocketsaw.class.getPackage().getName())), Stream.of(
+						classpathScanner.getSubModuleAnnotatedClassNames().stream(),
+						classpathScanner.getExternalFunctionalityAnnotatedClassNames().stream(),
+						Arrays.asList(SubModule.class.getName(), ExternalFunctionality.class.getName()).stream()
+				).flatMap(identity()).collect(Collectors.toSet()), true);
 		final PackageDependencies jdepsDependencies = JdepsWrapper.run("./target/classes", dependencyFilter);
 
 		assertThat(toString(jdepsDependencies)).isEqualTo(toString(classgraphDependencies));

@@ -15,15 +15,19 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
  * @author sj
  */
 public class SpringClasspathScanner extends ClasspathScanner {
+	
+	private final String basePackage;
 
-	private SpringClasspathScanner(Set<String> subModuleAnnotatedClassNames, Set<String> externalFunctionalityAnnotatedClassNames) {
+	private SpringClasspathScanner(Class<?> basePackageClass, Set<String> subModuleAnnotatedClassNames,
+			Set<String> externalFunctionalityAnnotatedClassNames) {
 		super(subModuleAnnotatedClassNames, externalFunctionalityAnnotatedClassNames);
+
+		this.basePackage = basePackageClass.getPackage().getName();
 	}
 
 	public static ClasspathScanner create(Class<?> basePackageClass) {
-		return new SpringClasspathScanner(findClasses(basePackageClass, SubModule.class),
+		return new SpringClasspathScanner(basePackageClass, findClasses(basePackageClass, SubModule.class),
 				findClasses(basePackageClass, ExternalFunctionality.class));
-
 	}
 
 	private static <A extends Annotation> Set<String> findClasses(Class<?> basePackageClass, Class<A> annotationClass) {
@@ -31,5 +35,10 @@ public class SpringClasspathScanner extends ClasspathScanner {
 		scanner.addIncludeFilter(new AnnotationTypeFilter(annotationClass));
 		return scanner.findCandidateComponents(basePackageClass.getPackage().getName()).stream()
 				.map(BeanDefinition::getBeanClassName).filter(TEST_CLASS_FILTER).collect(Collectors.toSet());
+	}
+
+	@Override
+	public String getBasePackage() {
+		return basePackage;
 	}
 }

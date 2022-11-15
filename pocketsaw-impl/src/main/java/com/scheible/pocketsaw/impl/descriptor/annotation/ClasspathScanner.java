@@ -27,4 +27,6 @@ public abstract class ClasspathScanner {
 	public Set<String> getSubModuleAnnotatedClassNames() {
 		return subModuleAnnotatedClassNames;
 	}
+	
+	public abstract String getBasePackage();
 }

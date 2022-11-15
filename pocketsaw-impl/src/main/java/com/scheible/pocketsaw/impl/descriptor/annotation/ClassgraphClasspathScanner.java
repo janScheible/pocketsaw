@@ -94,4 +94,9 @@ public class ClassgraphClasspathScanner extends DependencyAwareClasspathScanner 
 	public boolean doIncludeTestClasses() {
 		return includeTestDependencies;
 	}
+
+	@Override
+	public String getBasePackage() {
+		return basePackage;
+	}
 }

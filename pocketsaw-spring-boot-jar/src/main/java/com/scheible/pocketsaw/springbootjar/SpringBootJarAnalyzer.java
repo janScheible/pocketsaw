@@ -103,7 +103,7 @@ public class SpringBootJarAnalyzer implements PackageDependencySource {
 			}
 			
 			final PackageDependencies result = JdepsWrapper.run("classes", Optional.of(tempDir), Optional.of("*.jar"), 
-					new DependencyFilter(new HashSet<>(), true));
+					new DependencyFilter(rootPackages, new HashSet<>(), true));
 
 			if(!keepTempDirContents) {
 				deleteRecursively(tempDir);
