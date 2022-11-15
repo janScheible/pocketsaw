@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -35,9 +36,15 @@ public class Es6ModulesSource implements PackageDependencySource {
 	public static class ParameterBuilder {
 		
 		private static final String PRINT_BUNDLE_REPORT = "print-bundle-report";
+		private static final String START_MODULE = "start-module";
 		
 		public static Set<Entry<String, String>> printBundleReport(Set<Entry<String, String>> parameters) {
 			parameters.add(new SimpleImmutableEntry<>(PRINT_BUNDLE_REPORT, "true"));
+			return parameters;
+		}
+		
+		public static Set<Entry<String, String>> startModule(Set<Entry<String, String>> parameters, String startModule) {
+			parameters.add(new SimpleImmutableEntry<>(START_MODULE, startModule));
 			return parameters;
 		}
 	}	
@@ -136,10 +143,14 @@ public class Es6ModulesSource implements PackageDependencySource {
 	@Override
 	public PackageDependencies read(final File sourceRootDir, final Set<Entry<String, String>> parameters) {
 		boolean printBundleReport = false;
+		Optional<String> startModule = Optional.empty();
+		
 		for(final Entry<String, String> parameter : parameters) {
 			final String key = parameter.getKey().toLowerCase().trim();
 			if(ParameterBuilder.PRINT_BUNDLE_REPORT.equals(key)) {
 				printBundleReport =  Boolean.parseBoolean(parameter.getValue().toLowerCase().trim());
+			} else if(ParameterBuilder.START_MODULE.equals(key)) {
+				startModule = Optional.ofNullable(parameter.getValue());
 			}
 		}
 		
@@ -163,7 +174,7 @@ public class Es6ModulesSource implements PackageDependencySource {
 				})
 				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
-		bundleReport = BundleReporter.create(moduleDependencies);
+		bundleReport = BundleReporter.create(moduleDependencies, startModule);
 		if(printBundleReport) {
 			System.out.println(bundleReport);
 		}

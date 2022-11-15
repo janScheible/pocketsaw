@@ -10,6 +10,7 @@ import static java.util.Arrays.asList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
@@ -53,7 +54,7 @@ public class BundleReporterTest {
 		moduleDependencies.put(Paths.get("second-page-component"), importPaths(
 				importPath(Paths.get("util"), false), importPath(Paths.get("label"), false)));
 
-		final BundleReport report = BundleReporter.create(moduleDependencies);
+		final BundleReport report = BundleReporter.create(moduleDependencies, Optional.empty());
 
 		assertThat(report.getModuleBundles()).hasSize(9);
 		assertThat(report.getModuleBundles().get("app")).containsOnly();

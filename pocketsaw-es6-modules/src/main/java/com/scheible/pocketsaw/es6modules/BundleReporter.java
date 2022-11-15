@@ -14,7 +14,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -116,7 +118,7 @@ public class BundleReporter {
 		}
 	}
 
-	static BundleReport create(final Map<Path, Set<ImportPath>> moduleDependencies) {
+	static BundleReport create(final Map<Path, Set<ImportPath>> moduleDependencies, Optional<String> startModule) {
 		final ModuleGraph graph = new ModuleGraph();
 		final Set<String> bundleEntries = new HashSet<>();
 
@@ -130,7 +132,13 @@ public class BundleReporter {
 			}
 		}
 
-		return graph.getStartVertex().map(startVertex -> {
+		if(startModule.isPresent() && !graph.vertices.contains(startModule.get())) {
+			return new BundleReport("Start vertext '" + startModule.get() + "' is no vertex of the module graph!");
+		}
+
+		final Supplier<Optional<String>> startModuleSupplier = () -> startModule;
+		return Stream.of(startModuleSupplier, graph::getStartVertex).map(Supplier::get)
+				.filter(Optional::isPresent).map(Optional::get).findFirst().map(startVertex -> {
 			final Map<String, Set<String>> moduleBundles = new HashMap<>();
 
 			for (final String toVertex : graph.vertices) {

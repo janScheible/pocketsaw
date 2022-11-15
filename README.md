@@ -304,6 +304,9 @@ This sub-module is treated as the root of the dependency graph.
 Every dynamic `import` in the graph is then the entry point of a lazy loaded route and therefor starts a bundle.
 All sub-modules that belong to more than a single bundle are assigned to the default bundle.
 
+In case of multiple sub-modules with only outgoing dependencies there is since version 1.5.2 also an option available to choose a root sub-module explicitly.
+`Es6ModulesSource.ParameterBuilder.startModule(...)` is passed as a parameter to `es6ModulesSource#read(...)`.
+
 The following example sub-module dependency graph from the unit tests results in the bundle report shown under the graph.
 
 ![unit-test-es6-modules-dependency-graph]
