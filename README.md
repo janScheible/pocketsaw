@@ -78,7 +78,7 @@ Add
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.5.2</version>
+    <version>1.6.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -136,6 +136,17 @@ public static void beforeClass() {
             ClassgraphClasspathScanner.create("com.domain.project"));
 }
 ```
+
+#### Auto matching
+
+Since version 1.6.0 auto matching is available.
+It can be enabled with `enableAutoMatching()` called on the `ClasspathScanner` implementation.
+Sub-module and external functionality descriptors are generated automatically if they are not explicitly defined.
+For sub-modules sub packages are never included.
+If this is not the desired behavior for some packages a corresponding `@SubModule` has to be defined explicitly.
+
+In the following the structure of Pocketsaw is visualized with auto matching enabled:
+![Pocketsaw auto matching](pocketsaw-auto-matching.png "Pocketsaw auto matching")
 
 ### Matching of all packages with sub-modules and external functionalities
 
@@ -227,7 +238,7 @@ In this example [AssertJ](http://joel-costigliola.github.io/assertj/) is used an
 In the future the unit test might fail when new packages or additional libraries are added.
 The approach described in [Matching of all packages with sub-modules and external functionalities](#matching-of-all-packages-with-sub-modules-and-external-functionalities) is used then.
 
-It might also fail if one of the asserts are vialoted.
+It might also fail if one of the asserts are violated.
 In this case either the code has to be fixed to remove the not allowed code dependency or an additional usage relation has to be added like described in [Definition of the allowed sub-module dependencies](#definition-of-the-allowed-sub-module-dependencies).
 
 ## Using Pocketsaw in an Angular project
@@ -244,7 +255,7 @@ Next it is easiest to add the following to the `scripts` section of the `package
 Pocketsaw can then be run via the CLI:
 
 ```
-java -jar pocketsaw-1.5.2.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.6.0.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Angular Tour Of Heros Example
@@ -263,7 +274,7 @@ That means instead of using annotations in the code an external `sub-module.json
 The use case is to analyze an unmodified code base that does (not yet) use Pocketsaw.
 
 ```
-java -jar pocketsaw-1.5.2.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.6.0.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Spring Boot Multimodule Example
@@ -278,7 +289,7 @@ Since version 1.5.0 of Pocketsaw ES6 JavaScript projects are natively supported.
 That means Dependency Cruiser is not required and therefore no Node.js installation at all is needed.
 
 ```
-java -jar pocketsaw-1.5.2.jar sub-module.json ./src es6-modules:print-bundle-report=true pocketsaw-dependency-graph.html
+java -jar pocketsaw-1.6.0.jar sub-module.json ./src es6-modules:print-bundle-report=true pocketsaw-dependency-graph.html
 ```
 
 Or invocation in a Java unit test:
@@ -331,8 +342,12 @@ The final bundled app has then 3 bundles: `*default*` (which is loaded eagerly) 
 Since version 1.1.0 there is CLI support available via the `com.scheible.pocketsaw.impl.cli.Main` class.
 
 ```
-usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser|spring-boot-jar} <pocketsaw-dependency-graph.html>
-           [--ignore-illegal-code-dependencies] [--verbose]
+usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser|spring-boot-jar|es6-modules} <pocketsaw-dependency-graph.html> [--ignore-illegal-code-dependencies] [--auto-matching] [--verbose]
+
+options:
+  --ignore-illegal-code-dependencies   Does not fail in case of illegal code dependencies.
+  --auto-matching                      Enables auto matching (<sub-module.json> is optional then).
+  --verbose                            Print detailed information.
 ```
 
 Dependency information sources might require specific parameters to be passed.
@@ -345,6 +360,7 @@ The file format looks like this:
 
 ```json
 {
+  "autoMatching": false,
   "subModules": [
     {
       "name": "First",
@@ -374,6 +390,8 @@ The file format looks like this:
 }
 ```
 
+- auto matching
+  - enables auto matching (`false` is the default)
 - sub-modules
   - `uses` with `[]` as default
   - `includeSubPackages` with default same as `@SubModule#includeSubPackages` (`true`)
@@ -412,6 +430,7 @@ Optional parameters:
 Optional parameters:
 
 - `print-bundle-report`: Boolean parameter for printing the bundle report to the console
+- `start-module`: Root sub-module for the bundle report
 
 ### Maven usage
 
@@ -452,15 +471,15 @@ To automated Pocketsaw execution in a Maven project with an Angular frontend the
 
 The CLI uses the following exit codes to allow easy scripting:
 
-| exit code | description                                         |
-| --------- | --------------------------------------------------- |
-| -1        | unexpected fatal error                              |
-| 1         | no package dependency source was found on classpath |
-| 2         | not enough arguments                                |
-| 3         | something wrong with an argument                    |
-| 4         | found a descriptor cycle                            |
-| 5         | found a code cycle                                  |
-| 6         | found illegal code dependencies                     |
+| exit code | description                                              |
+| --------- | -------------------------------------------------------- |
+| -1        | unexpected fatal error                                   |
+| 1         | no package dependency source was found on classpath      |
+| 2         | wrong arguments                                          |
+| 3         | also wrong arguments (for backwards compatibility only)  |
+| 4         | found a descriptor cycle                                 |
+| 5         | found a code cycle                                       |
+| 6         | found illegal code dependencies                          |
 
 ## Shaded dependencies
 

@@ -20,10 +20,13 @@ public class PackageMatcher<T extends PackageMatchable> {
 
 	private static final AntPathMatcher PACKAGE_MATCHER = new AntPathMatcher(".");
 
+	private final Set<T> packageGroups;
 	private final List<String> packageMatchPatterns;
 	private final Map<String, T> patternMapping = new HashMap<>();
 
-	public PackageMatcher(Set<T> packageGroups) {
+	public PackageMatcher(final Set<T> packageGroups) {
+		this.packageGroups = packageGroups;
+
 		for(final T packageGroup : packageGroups) {
 			for(final String packageMatchPattern : packageGroup.getPackageMatchPatterns()) {
 				if(patternMapping.containsKey(packageMatchPattern)) {
@@ -101,5 +104,9 @@ public class PackageMatcher<T extends PackageMatchable> {
 	
 	List<String> getPackageMatchPatterns() {
 		return packageMatchPatterns;
+	}
+
+	public Set<T> getPackageGroups() {
+		return packageGroups;
 	}
 }

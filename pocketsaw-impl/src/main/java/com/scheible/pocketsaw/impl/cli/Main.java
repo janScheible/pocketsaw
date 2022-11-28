@@ -3,6 +3,8 @@ package com.scheible.pocketsaw.impl.cli;
 import com.scheible.pocketsaw.impl.Pocketsaw;
 import com.scheible.pocketsaw.impl.Pocketsaw.AnalysisResult;
 import com.scheible.pocketsaw.impl.cli.DependencySourceResolver.ResolvedDependencySource;
+import com.scheible.pocketsaw.impl.cli.ValidatedArguments.ErrorReason;
+import com.scheible.pocketsaw.impl.cli.ValidationResult.ValidationSuccess;
 import com.scheible.pocketsaw.impl.code.NopPackageDependencySource;
 import com.scheible.pocketsaw.impl.code.PackageDependencies;
 import com.scheible.pocketsaw.impl.code.PackageDependencySource;
@@ -11,12 +13,9 @@ import com.scheible.pocketsaw.impl.descriptor.ExternalFunctionalityDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import com.scheible.pocketsaw.impl.descriptor.json.JsonDescriptorReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -38,91 +37,78 @@ public class Main {
 			System.exit(1);
 		}
 
-		if (args.length < 4) {
+		final ParsedArguments parsedArgs = ParsedArguments.parse(args, packageDependencySources);
+		final ValidationResult valdiationResult = ValidatedArguments.validate(parsedArgs, file -> file.exists());
+
+		if (valdiationResult.isError()) {
+			final Set<Entry<ErrorReason, String>> errorMessages = valdiationResult.asError().getErrorMessages();
+			
 			printUsageInfo(packageDependencySources);
-			System.err.println("Not enough arguments!");
+			errorMessages.stream().map(Entry::getValue).forEach(System.err::println);
+
 			System.exit(2);
 		}
-		final String subModulesJsonFile = args[0];
-		final String dependenciesFile = args[1];
 
-		final String dependencySource = args[2];
-
-		final String dependencyGraphHtmlFile = args[3];
-
-		final ResolvedArguments resolvedArguments = resolveArguments(subModulesJsonFile, dependenciesFile,
-				dependencyGraphHtmlFile, dependencySource, packageDependencySources);
-		if (!resolvedArguments.isValid()) {
-			printUsageInfo(packageDependencySources);
-			if (!resolvedArguments.subModulesJsonFile.exists()) {
-				System.err.println("The sub modules JSON file '" + resolvedArguments.subModulesJsonFile.getAbsolutePath()
-						+ "' does not exist!");
-			}
-			if (!resolvedArguments.dependenciesFile.exists()) {
-				System.err.println("The dependencies file '" + resolvedArguments.dependenciesFile.getAbsolutePath()
-						+ "' does not exist!");
-			}
-			if (!resolvedArguments.dependencyGraphHtmlFile.getParentFile().exists()) {
-				System.err.println("At least one of the directories of the dependency graph HTML file '"
-						+ resolvedArguments.dependencyGraphHtmlFile.getAbsolutePath() + "' does not exist!");
-			}
-			if (!resolvedArguments.dependencySource.isPresent()) {
-				System.err.println("The dependency source '" + dependencySource + "' is unknown!");
-			}
-
-			System.exit(3);
-		}
-
-		boolean ignoreIllegalCodeDependencies = false;
-		boolean verbose = false;
-		for (final String arg : args) {
-			if ("--ignore-illegal-code-dependencies".equals(arg.trim().toLowerCase())) {
-				ignoreIllegalCodeDependencies = true;
-			} else if ("--verbose".equals(arg.trim().toLowerCase())) {
-				verbose = true;
-			}
-		}
-
-		System.out.println("sub modules JSON file: '" + resolvedArguments.subModulesJsonFile.getAbsolutePath()
-				+ "', dependencies file: '" + resolvedArguments.dependenciesFile.getAbsolutePath()
-				+ "', ignore illegal code dependencies: " + ignoreIllegalCodeDependencies
-				+ ", verbose: " + verbose + ", dependency source specific parameters: " 
-				+ resolvedArguments.dependencySourceParameters);
-		if (resolvedArguments.dependencySource.get() instanceof NopPackageDependencySource) {
-			System.out.println("The dependency source '" + resolvedArguments.dependencySource.get().getIdentifier()
+		final ResolvedDependencySource resolvedDependencySource = parsedArgs.resolvedDependencySource.get();
+		if (resolvedDependencySource.getDependencySource() instanceof NopPackageDependencySource) {
+			System.out.println("The dependency source '" + resolvedDependencySource.getDependencySource().getIdentifier()
 					+ "' is only intended for testing purposes! It simply does... well nothing...");
 		}
 
+		final ValidationSuccess validatedArgs = valdiationResult.asSuccess();
+		
+		final Optional<File> subModulesJsonFile = validatedArgs.getSubModulesJsonFile();
+		final File dependenciesFile = validatedArgs.getDependenciesFile();
+		final File dependencyGraphHtmlFile = validatedArgs.getDependencyGraphHtmlFile();
+
+		final String subModulesJsonFileDesc = subModulesJsonFile.isPresent()
+				? ("sub modules JSON file: '" + subModulesJsonFile.get().getAbsolutePath() + "', ") : "";
+		System.out.println(subModulesJsonFileDesc
+				+ "dependency source: " + resolvedDependencySource.getDependencySource().getIdentifier()
+				+ ", dependency source specific parameters: " + resolvedDependencySource.getDependencySourceParameters()
+				+ ", dependencies file/directory: '" + dependenciesFile.getAbsolutePath()
+				+ "', ignore illegal code dependencies: " + parsedArgs.ignoreIllegalCodeDependencies
+				+ ", auto matching: " + parsedArgs.autoMatching + ", verbose: " + parsedArgs.verbose);
+
 		try {
-			final DescriptorInfo descriptorInfo = JsonDescriptorReader.read(resolvedArguments.subModulesJsonFile);
-			final PackageDependencies packageDependencies = resolvedArguments.dependencySource.get().read(
-					new File(dependenciesFile), resolvedArguments.dependencySourceParameters);
-			if (verbose) {
+			final DescriptorInfo descriptorInfo = subModulesJsonFile.isPresent()
+					? JsonDescriptorReader.read(subModulesJsonFile.get()).withAutoMatching(parsedArgs.autoMatching)
+					: new DescriptorInfo(Collections.emptySet(), Collections.emptySet(), true);
+			final PackageDependencies packageDependencies = resolvedDependencySource.getDependencySource().read(
+					dependenciesFile, resolvedDependencySource.getDependencySourceParameters());
+			if (parsedArgs.verbose) {
 				System.out.println("sub modules:");
 				for (final SubModuleDescriptor subModule : descriptorInfo.getSubModules()) {
 					System.out.print("  - ");
-					System.out.println(subModule.getName() + ": " 
-							+ subModule.getPackageMatchPatterns().stream().collect(Collectors.joining(", ")) 
+					System.out.println(subModule.getName() + ": "
+							+ subModule.getPackageMatchPatterns().stream().collect(Collectors.joining(", "))
 							+ " using " + subModule.getUsedSubModuleIds());
 				}
+
 				System.out.println("external functionalities:");
 				for (final ExternalFunctionalityDescriptor externalFunctionality : descriptorInfo.getExternalFunctionalities()) {
 					System.out.print("  - ");
-					System.out.println(externalFunctionality.getName() + ": " 
+					System.out.println(externalFunctionality.getName() + ": "
 							+ externalFunctionality.getPackageMatchPatterns().stream().collect(Collectors.joining(", ")));
-				}				
+				}
+
+				final boolean autoMatchingOverrideByCli = parsedArgs.autoMatching && parsedArgs.autoMatching != descriptorInfo.doAutoMatching();
+				System.out.println("auto matching: " + parsedArgs.autoMatching
+						+ (autoMatchingOverrideByCli ? " (overriden by cli)" : ""));
+
 				System.out.println("package dependencies:");
-				final List<Map.Entry<String, Set<String>>> entryList = new ArrayList<>();
+				final List<Entry<String, Set<String>>> entryList = new ArrayList<>();
 				packageDependencies.entrySet().forEach(entryList::add);
-				Collections.sort(entryList, (Map.Entry<String, Set<String>> first, Map.Entry<String, Set<String>> second)
+				Collections.sort(entryList, (Entry<String, Set<String>> first, Entry<String, Set<String>> second)
 						-> first.getKey().compareTo(second.getKey()));
-				for (final Map.Entry<String, Set<String>> dependency : entryList) {
+				for (final Entry<String, Set<String>> dependency : entryList) {
 					System.out.print("  - ");
 					System.out.println(dependency.getKey() + " --> " + dependency.getValue());
 				}
 			}
-			final AnalysisResult result = Pocketsaw.analize(resolvedArguments.subModulesJsonFile,
-					packageDependencies, Optional.of(resolvedArguments.dependencyGraphHtmlFile));
+
+			final AnalysisResult result = Pocketsaw.analize(descriptorInfo, packageDependencies,
+					Optional.of(dependencyGraphHtmlFile));
 
 			if (result.getAnyDescriptorCycle().isPresent()) {
 				System.err.println("found a descriptor cycle: " + result.getAnyDescriptorCycle().get());
@@ -130,11 +116,11 @@ public class Main {
 			} else if (result.getAnyCodeCycle().isPresent()) {
 				System.err.println("found a code cycle: " + result.getAnyCodeCycle().get());
 				System.exit(5);
-			} else if (!ignoreIllegalCodeDependencies && !result.getIllegalCodeDependencies().isEmpty()) {
+			} else if (!parsedArgs.ignoreIllegalCodeDependencies && !result.getIllegalCodeDependencies().isEmpty()) {
 				System.err.println("found illegal code dependencies: " + result.getIllegalCodeDependencies());
 				System.exit(6);
 			}
-		} catch (Exception ex) {
+		} catch (final Exception ex) {
 			System.err.print("An unexpected error occured: ");
 			ex.printStackTrace(System.err);
 			System.exit(-1);
@@ -148,47 +134,11 @@ public class Main {
 				+ packageDependencySources.stream()
 						.filter(pds -> !(pds instanceof NopPackageDependencySource))
 						.map(PackageDependencySource::getIdentifier)
-						.collect(Collectors.joining("|")) + "} <pocketsaw-dependency-graph.html> [--ignore-illegal-code-dependencies] [--verbose]");
-	}
-
-	private static class ResolvedArguments {
-
-		private final File subModulesJsonFile;
-		private final File dependenciesFile;
-		private final File dependencyGraphHtmlFile;
-		private final Optional<PackageDependencySource> dependencySource;
-		private final Set<Entry<String, String>> dependencySourceParameters;
-
-		private ResolvedArguments(File subModulesJsonFile, File dependencyFile, File dependencyGraphHtmlFile,
-				Optional<PackageDependencySource> dependencySource, Set<Entry<String, String>> dependencySourceParameters) {
-			this.subModulesJsonFile = subModulesJsonFile;
-			this.dependenciesFile = dependencyFile;
-			this.dependencyGraphHtmlFile = dependencyGraphHtmlFile;
-			this.dependencySource = dependencySource;
-			this.dependencySourceParameters = dependencySourceParameters;
-		}
-
-		private boolean isValid() {
-			return subModulesJsonFile.exists() && dependenciesFile.exists()
-					&& dependencyGraphHtmlFile.getParentFile().exists() && dependencySource.isPresent();
-		}
-	}
-
-	private static ResolvedArguments resolveArguments(String subModuleFile, String dependencyFile,
-			String dependencyGraphHtmlFile, String dependencySourceParameter,
-			List<PackageDependencySource> packageDependencySources) {
-		final ResolvedDependencySource resolvedDependencySource = DependencySourceResolver.resolve(
-				dependencySourceParameter, packageDependencySources);
-		return new ResolvedArguments(toCanonical(subModuleFile), toCanonical(dependencyFile),
-				toCanonical(dependencyGraphHtmlFile), resolvedDependencySource.getDependencySource(), 
-				resolvedDependencySource.getDependencySourceParameters());
-	}
-
-	private static File toCanonical(String relativeFile) {
-		try {
-			return new File(relativeFile).getCanonicalFile();
-		} catch (IOException ex) {
-			throw new UncheckedIOException(ex);
-		}
+						.collect(Collectors.joining("|")) + "} <pocketsaw-dependency-graph.html> [--ignore-illegal-code-dependencies] [--auto-matching] [--verbose]");
+		System.out.println("");
+		System.out.println("options:");
+		System.out.println("  --ignore-illegal-code-dependencies   Does not fail in case of illegal code dependencies.");
+		System.out.println("  --auto-matching                      Enables auto matching (<sub-module.json> is optional then).");
+		System.out.println("  --verbose                            Print detailed information.");
 	}
 }

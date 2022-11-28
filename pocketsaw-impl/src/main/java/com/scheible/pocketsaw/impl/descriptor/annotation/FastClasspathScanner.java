@@ -14,13 +14,10 @@ import java.util.stream.Collectors;
  */
 public class FastClasspathScanner extends ClasspathScanner {
 
-	private final String basePackage;
-
 	private FastClasspathScanner(Class<?> basePackageClass, Set<String> subModuleAnnotatedClassNames, 
 			Set<String> externalFunctionalityAnnotatedClassNames) {
-		super(subModuleAnnotatedClassNames, externalFunctionalityAnnotatedClassNames);
-
-		this.basePackage = basePackageClass.getPackage().getName();
+		super(basePackageClass.getPackage().getName(), subModuleAnnotatedClassNames, 
+				externalFunctionalityAnnotatedClassNames);
 	}
 
 	public static ClasspathScanner create(Class<?> basePackageClass) {
@@ -28,17 +25,11 @@ public class FastClasspathScanner extends ClasspathScanner {
 
 		return new FastClasspathScanner(basePackageClass, findClasses(scanResult, SubModule.class),
 				findClasses(scanResult, ExternalFunctionality.class));
-
 	}
 
 	private static <A extends Annotation> Set<String> findClasses(ScanResult scanResult,
 			Class<A> annotationClass) {
 		return scanResult.getNamesOfClassesWithAnnotation(annotationClass).stream()
 				.filter(TEST_CLASS_FILTER).collect(Collectors.toSet());
-	}
-
-	@Override
-	public String getBasePackage() {
-		return basePackage;
 	}
 }

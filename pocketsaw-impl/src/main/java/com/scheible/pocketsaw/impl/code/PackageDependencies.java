@@ -1,10 +1,12 @@
 package com.scheible.pocketsaw.impl.code;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import static java.util.Collections.unmodifiableMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -99,7 +101,47 @@ public class PackageDependencies {
 			}
 		}
 	}
-	
+
+	public String getBasePackage() {
+		return getBasePackage(new ArrayList<>(packageDependencies.keySet()));
+	}
+
+	static String getBasePackage(final List<String> packages) {
+		final StringBuilder basePackage = new StringBuilder();
+
+		for(int pos = 0; pos < Integer.MAX_VALUE; pos++) {
+			boolean same = true;
+			char currentChar = ' ';
+
+			for(int i = 0; i < packages.size(); i++) {
+				if(pos < packages.get(i).length()) {
+					if(i == 0) {
+						currentChar = packages.get(i).charAt(pos);
+					} else if(packages.get(i).charAt(pos) != currentChar) {
+						same = false;
+						break;
+					}					
+				} else {
+					same = false;
+					break;
+				}
+			}
+			
+			if(same && packages.size() > 0) {
+				basePackage.append(currentChar);
+			} else {
+				break;
+			}
+		}
+		
+		// remove trailing dot if there is any
+		if(basePackage.length() > 0 && basePackage.charAt(basePackage.length() - 1) == '.') {
+			basePackage.deleteCharAt(basePackage.length() - 1);
+		}
+		
+		return basePackage.toString();		
+	}
+
 	public Set<String> getAllTypes(final String packageName) {
 		return packageClasses.get(packageName);
 	}

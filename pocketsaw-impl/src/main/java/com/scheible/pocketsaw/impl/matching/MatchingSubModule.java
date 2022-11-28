@@ -5,10 +5,10 @@ import com.scheible.pocketsaw.impl.shaded.org.springframework.util.SpringUtilSub
 
 /**
  * Helps to map package name to groups.
- * 
+ *
  * @author sj
  */
-@SubModule({SpringUtilSubModule.class})
+@SubModule(includeSubPackages = false, uses = {SpringUtilSubModule.class})
 public class MatchingSubModule {
 
 }

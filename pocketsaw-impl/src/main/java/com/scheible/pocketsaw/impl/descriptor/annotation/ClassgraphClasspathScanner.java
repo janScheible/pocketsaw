@@ -19,17 +19,14 @@ import java.util.stream.Collectors;
  */
 public class ClassgraphClasspathScanner extends DependencyAwareClasspathScanner {
 
-	private final String basePackage;
-
 	private Set<String> lazySubModuleAnnotatedClassNames = null;
 	private Set<String> lazyExternalFunctionalityAnnotatedClassNames = null;
 	private PackageDependencies lazyDependencies = null;
 	
 	private boolean includeTestDependencies = false;
 
-	private ClassgraphClasspathScanner(String basePackage) {
-		super(new HashSet<>(), new HashSet<>());
-		this.basePackage = basePackage;
+	private ClassgraphClasspathScanner(final String basePackage) {
+		super(basePackage, new HashSet<>(), new HashSet<>());
 	}
 
 	public static DependencyAwareClasspathScanner create(Class<?> basePackageClass) {
@@ -41,7 +38,7 @@ public class ClassgraphClasspathScanner extends DependencyAwareClasspathScanner 
 	}
 
 	private ClassgraphClasspathScanner scan() {
-		final ClassGraph classGraph = new ClassGraph().whitelistPackages(basePackage)
+		final ClassGraph classGraph = new ClassGraph().whitelistPackages(getBasePackage())
 				.enableAnnotationInfo().ignoreClassVisibility().disableRuntimeInvisibleAnnotations();
 		if (doDependencyScan()) {
 			classGraph.enableInterClassDependencies().enableExternalClasses();
@@ -50,7 +47,7 @@ public class ClassgraphClasspathScanner extends DependencyAwareClasspathScanner 
 		// NOTE It is needed to filter for base package because ClassGraph extends the scan to other related classes. 
 		BiFunction<ScanResult, Class<?>, Set<String>> toClassNames = (sr, ac) -> sr.getClassesWithAnnotation(ac.getName())
 				.stream().map(ClassInfo::getName)
-				.filter(cn -> cn.startsWith(basePackage + "."))
+				.filter(cn -> cn.startsWith(getBasePackage() + "."))
 				.filter(TEST_CLASS_FILTER).collect(Collectors.toSet());
 
 		try (final ScanResult scanResult = classGraph.scan()) {
@@ -58,7 +55,7 @@ public class ClassgraphClasspathScanner extends DependencyAwareClasspathScanner 
 			lazyExternalFunctionalityAnnotatedClassNames = toClassNames.apply(scanResult, ExternalFunctionality.class);
 
 			if (doDependencyScan()) {
-				lazyDependencies = ClassgraphPackageDependenciesMapper.map(basePackage, scanResult.getClassDependencyMap(), includeTestDependencies);
+				lazyDependencies = ClassgraphPackageDependenciesMapper.map(getBasePackage(), scanResult.getClassDependencyMap(), includeTestDependencies);
 			}
 		}
 
@@ -93,10 +90,5 @@ public class ClassgraphClasspathScanner extends DependencyAwareClasspathScanner 
 	
 	public boolean doIncludeTestClasses() {
 		return includeTestDependencies;
-	}
-
-	@Override
-	public String getBasePackage() {
-		return basePackage;
 	}
 }

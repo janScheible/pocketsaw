@@ -1,6 +1,7 @@
 package com.scheible.pocketsaw.impl.code;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,7 +17,7 @@ import org.junit.Test;
 public class PackageDependenciesTest {
 
 	@Test
-	public void testSomeMethod() {
+	public void testPackageDependencies() {
 		final PackageDependencies packageDependencies = new PackageDependencies(getTestPackageDependencies());
 		
 		assertThat(packageDependencies.getCodeDependencyCount("a", "b")).isEqualTo(1);
@@ -29,5 +30,14 @@ public class PackageDependenciesTest {
 		final Map<String, Set<String>> result = new HashMap<>();
 		result.put("a", new HashSet<>(Arrays.asList("b")));
 		return result;
+	}
+
+	@Test
+	public void testGetBasePackage() {
+		assertThat(PackageDependencies.getBasePackage(Collections.emptyList())).isEqualTo("");
+		assertThat(PackageDependencies.getBasePackage(Arrays.asList(""))).isEqualTo("");
+		assertThat(PackageDependencies.getBasePackage(Arrays.asList("com.test", ""))).isEqualTo("");
+		assertThat(PackageDependencies.getBasePackage(Arrays.asList("com.test"))).isEqualTo("com.test");
+		assertThat(PackageDependencies.getBasePackage(Arrays.asList("com.test", "com.foo"))).isEqualTo("com");
 	}
 }

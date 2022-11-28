@@ -12,16 +12,22 @@ public abstract class DependencyAwareClasspathScanner extends ClasspathScanner {
 	
 	private boolean dependencyScan = false;
 	
-	protected DependencyAwareClasspathScanner(final Set<String> subModuleAnnotatedClassNames, 
+	protected DependencyAwareClasspathScanner(final String basePackage, final Set<String> subModuleAnnotatedClassNames, 
 			final Set<String> externalFunctionalityAnnotatedClassNames) {
-		super(subModuleAnnotatedClassNames, externalFunctionalityAnnotatedClassNames);
+		super(basePackage, subModuleAnnotatedClassNames, externalFunctionalityAnnotatedClassNames);
 	}
-	
+
 	public DependencyAwareClasspathScanner enableDependencyScan() {
 		dependencyScan = true;
 		return this;
 	}
-	
+
+	@Override
+	public DependencyAwareClasspathScanner enableAutoMatching() {
+		super.enableAutoMatching();
+		return this;
+	}
+
 	public boolean doDependencyScan() {
 		return dependencyScan;
 	}

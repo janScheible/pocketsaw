@@ -130,10 +130,9 @@ public class Pocketsaw {
 		}
 	}
 
-	static AnalysisResult analize(final DescriptorInfo descriptorInfo, final PackageDependencies packageDependencies,
+	public static AnalysisResult analize(final DescriptorInfo descriptorInfo, final PackageDependencies packageDependencies,
 			Optional<File> dependencyGraphHtmlFile) {
-		final DependencyGraph dependencyGraph = DependencyGraphFactory.create(packageDependencies,
-				descriptorInfo.getSubModules(), descriptorInfo.getExternalFunctionalities());
+		final DependencyGraph dependencyGraph = DependencyGraphFactory.create(descriptorInfo, packageDependencies);
 
 		final File resolvedDependencyGraphHtmlFile = toCanonical(dependencyGraphHtmlFile.orElseGet(() -> Paths.get(GRAPH_HTML_OUTPUT_FILE).toFile()));
 		VisJsRenderer.render(dependencyGraph, resolvedDependencyGraphHtmlFile);

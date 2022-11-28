@@ -25,7 +25,7 @@ public class AnnotationDescriptorInfoFactory {
 		Set<ExternalFunctionalityDescriptor> externalFunctionalities = externalFunctionalitiesClasses.stream()
 				.map(AnnotationDescriptorInfoFactory::fromAnnotatedExternalFunctionalityClass).collect(Collectors.toSet());
 		
-		return new DescriptorInfo(subModules, externalFunctionalities);
+		return new DescriptorInfo(subModules, externalFunctionalities, classpathScanner.doAutoMatching());
 	}
 	
 	private static Class<?> forName(String className) {

@@ -18,7 +18,7 @@ public class PocketsawTest {
 
 	@Test
 	public void testThirdPartyDependencyInformationMode() {
-		final DescriptorInfo descriptorInfo = new DescriptorInfo(new HashSet<>(), new HashSet<>());
+		final DescriptorInfo descriptorInfo = new DescriptorInfo(new HashSet<>(), new HashSet<>(), false);
 		final PackageDependencies packageDependencies = new PackageDependencies(new HashMap<>());
 
 		final AnalysisResult result = Pocketsaw.analize(descriptorInfo, packageDependencies, 

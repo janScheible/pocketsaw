@@ -4,7 +4,7 @@ import com.scheible.pocketsaw.impl.code.PackageDependencySource;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -18,30 +18,30 @@ class DependencySourceResolver {
 
 	static class ResolvedDependencySource {
 
-		private final Optional<PackageDependencySource> dependencySource;
-		private final Set<Map.Entry<String, String>> dependencySourceParameters;
+		private final PackageDependencySource dependencySource;
+		private final Set<Entry<String, String>> dependencySourceParameters;
 
-		private ResolvedDependencySource(Optional<PackageDependencySource> dependencySource,
-				Set<Map.Entry<String, String>> dependencySourceParameters) {
+		private ResolvedDependencySource(final PackageDependencySource dependencySource,
+				final Set<Entry<String, String>> dependencySourceParameters) {
 			this.dependencySource = dependencySource;
 			this.dependencySourceParameters = dependencySourceParameters;
 		}
 
-		Optional<PackageDependencySource> getDependencySource() {
+		PackageDependencySource getDependencySource() {
 			return dependencySource;
 		}
 
-		Set<Map.Entry<String, String>> getDependencySourceParameters() {
+		Set<Entry<String, String>> getDependencySourceParameters() {
 			return dependencySourceParameters;
 		}
 	}
 
-	static ResolvedDependencySource resolve(String dependencySourceParameter,
+	static Optional<ResolvedDependencySource> resolve(String dependencySourceParameter,
 			List<PackageDependencySource> packageDependencySources) {
 		final String[] dependencySourceAndParameters = dependencySourceParameter.split(Pattern.quote(":"));
 		final Optional<PackageDependencySource> dependencySource = packageDependencySources.stream()
 				.filter(pds -> pds.getIdentifier().equals(dependencySourceAndParameters[0])).findFirst();
-		final Set<Map.Entry<String, String>> dependencySourceParameters = Arrays.stream(dependencySourceAndParameters)
+		final Set<Entry<String, String>> dependencySourceParameters = Arrays.stream(dependencySourceAndParameters)
 				.filter(p -> p.contains("="))
 				.map(p -> {
 					final String[] paramParts = p.split(Pattern.quote("="));
@@ -49,6 +49,6 @@ class DependencySourceResolver {
 				})
 				.collect(Collectors.toSet());
 
-		return new ResolvedDependencySource(dependencySource, dependencySourceParameters);
+		return dependencySource.map(ds -> new ResolvedDependencySource(ds, dependencySourceParameters));
 	}
 }

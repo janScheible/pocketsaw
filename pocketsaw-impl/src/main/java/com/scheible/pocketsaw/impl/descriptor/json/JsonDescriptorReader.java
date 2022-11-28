@@ -16,8 +16,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -30,10 +32,13 @@ public class JsonDescriptorReader {
 
 		private final List<SubModuleJson> subModules;
 		private final List<ExternalFunctionalityJson> externalFunctionalities;
+		private final boolean autoMatching;
 
-		public DescriptorJson(List<SubModuleJson> subModules, List<ExternalFunctionalityJson> externalFunctionalities) {
+		public DescriptorJson(final List<SubModuleJson> subModules, 
+				final List<ExternalFunctionalityJson> externalFunctionalities, final boolean autoMatching) {
 			this.subModules = subModules;
 			this.externalFunctionalities = externalFunctionalities;
+			this.autoMatching = autoMatching;
 		}
 
 		List<ExternalFunctionalityJson> getExternalFunctionalities() {
@@ -55,8 +60,9 @@ public class JsonDescriptorReader {
 		final Set<String> names = new HashSet<>();
 
 		final JsonObject descriptors = Json.parse(modulesJson).asObject();
-		final JsonArray subModules = (descriptors.contains("submodules") ? descriptors.get("submodules")
-				: descriptors.get("subModules")).asArray();
+		final JsonArray subModules = Stream.of(descriptors.get("subModules"), descriptors.get("submodules"))
+				.filter(sm -> sm != null && sm.isArray()).map(sm -> sm.asArray()).findFirst()
+				.orElseGet(() -> new JsonArray());
 		for (int i = 0; i < subModules.size(); i++) {
 			final JsonObject subModule = subModules.get(i).asObject();
 			final SubModuleJson subModuleDescriptor = new SubModuleJson(subModule.get("name").asString(),
@@ -78,7 +84,8 @@ public class JsonDescriptorReader {
 
 		names.clear();
 
-		final JsonValue externalFunctionalities = descriptors.get("externalFunctionalities");
+		final JsonArray externalFunctionalities = Optional.ofNullable(descriptors.get("externalFunctionalities"))
+				.filter(ef -> ef.isArray()).map(ef -> ef.asArray()).orElseGet(() -> new JsonArray());
 		if (externalFunctionalities != null) {
 			for (int i = 0; i < externalFunctionalities.asArray().size(); i++) {
 				final JsonObject externalFunctionality = externalFunctionalities.asArray().get(i).asObject();
@@ -109,7 +116,9 @@ public class JsonDescriptorReader {
 			}
 		}
 
-		return new DescriptorJson(subModuleDescriptors, externalFunctionalityDescriptors);
+		final boolean autoMatching = descriptors.getBoolean("autoMatching", false);
+
+		return new DescriptorJson(subModuleDescriptors, externalFunctionalityDescriptors, autoMatching);
 	}
 
 	static DescriptorInfo toDescriptorInfo(final DescriptorJson descriptorJson) {
@@ -119,7 +128,7 @@ public class JsonDescriptorReader {
 				.collect(Collectors.toSet()),
 				descriptorJson.externalFunctionalities.stream().map(e
 						-> new ExternalFunctionalityDescriptor(e.getName(), e.getName(), e.getPackageMatchPatterns()))
-						.collect(Collectors.toSet()));
+						.collect(Collectors.toSet()), descriptorJson.autoMatching);
 		return descriptorInfo;
 	}
 }

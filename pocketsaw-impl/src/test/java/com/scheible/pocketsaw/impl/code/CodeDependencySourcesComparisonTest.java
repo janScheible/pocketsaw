@@ -36,7 +36,9 @@ public class CodeDependencySourcesComparisonTest {
 				).flatMap(identity()).collect(Collectors.toSet()), true);
 		final PackageDependencies jdepsDependencies = JdepsWrapper.run("./target/classes", dependencyFilter);
 
-		assertThat(toString(jdepsDependencies)).isEqualTo(toString(classgraphDependencies));
+		assertThat(toString(jdepsDependencies)).isEqualTo(toString(classgraphDependencies)
+				// Classpath also detects dependencies from a super class whilst jDeps does not... for now excluding that dependency
+				.replace("com.scheible.pocketsaw.impl.matching.auto --> com.scheible.pocketsaw.impl.shaded.org.springframework.util\n", ""));
 	}
 
 	private String toString(final PackageDependencies deps) {

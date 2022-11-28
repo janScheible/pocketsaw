@@ -64,23 +64,22 @@ public class DependencyGraphIntegrationTest {
 		final HashSet<SubModuleDescriptor> subModules = new HashSet<>(Arrays.asList(domain, store, applicationService, adapter,
 				new SubModuleDescriptor("8", "sample", "com.scheible.javasubmodules.sample", false, new HashSet<>(), new HashSet<>())));
 
-		return new DescriptorInfo(subModules, new HashSet<>(Arrays.asList(springTx, springJms, googleGuava)));
+		return new DescriptorInfo(subModules, new HashSet<>(Arrays.asList(springTx, springJms, googleGuava)), false);
 	}
 
 	@Test
 	public void testDependencyGraph() throws IOException {
 		final PackageDependencies packageDependencies = getPackageDependencies();
 		final DescriptorInfo descriptorInfo = getPackageGroups();
-		
-		final DependencyGraph dependencyGraph = DependencyGraphFactory.create(packageDependencies,
-				descriptorInfo.getSubModules(), descriptorInfo.getExternalFunctionalities());		
-		
+
+		final DependencyGraph dependencyGraph = DependencyGraphFactory.create(descriptorInfo, packageDependencies);
+
 		assertThat(dependencyGraph.getAnyDescriptorCycle()).isEmpty();
 		assertThat(dependencyGraph.getAnyCodeCycle()).isEmpty();
 		assertThat(dependencyGraph.getIllegalCodeDependencies()).hasSize(1)
 				.allMatch((dependency) -> dependency.getSource().getId().equals("5")
 				&& dependency.getTarget().getId().equals("4"));
-		
+
 		// VisJsRenderer.render(dependencyGraph, Paths.getPackageDependencies("./target/java-project-sub-modules.html").toFile());
 	}
 

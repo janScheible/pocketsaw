@@ -5,6 +5,7 @@ import com.scheible.pocketsaw.impl.code.PackageDependency;
 import com.scheible.pocketsaw.impl.code.TypeDependency;
 import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.CODE;
 import static com.scheible.pocketsaw.impl.dependency.Dependency.Origin.DESCRIPTOR;
+import com.scheible.pocketsaw.impl.descriptor.DescriptorInfo;
 import com.scheible.pocketsaw.impl.descriptor.SubModuleDescriptor;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
@@ -27,8 +28,9 @@ public class DependencyGraphFactoryTest {
 				new HashSet<>());
 		final SubModuleDescriptor b = new SubModuleDescriptor("b", "b", "b", false, "red", new HashSet<>(), new HashSet<>());
 
-		final DependencyGraph graph = DependencyGraphFactory.create(new PackageDependencies(new HashMap<>()),
-				new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
+		final DependencyGraph graph = DependencyGraphFactory.create(
+				new DescriptorInfo(new HashSet<>(Arrays.asList(a, b)), new HashSet<>(), false),
+				new PackageDependencies(new HashMap<>()));
 
 		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, 0, DESCRIPTOR));
 	}
@@ -41,8 +43,9 @@ public class DependencyGraphFactoryTest {
 		final Map<String, Set<String>> codePackageDependencies = new HashMap<>();
 		codePackageDependencies.put("a", new HashSet<>(Arrays.asList("b")));
 
-		final DependencyGraph graph = DependencyGraphFactory.create(new PackageDependencies(codePackageDependencies),
-				new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
+		final DependencyGraph graph = DependencyGraphFactory.create(
+				new DescriptorInfo(new HashSet<>(Arrays.asList(a, b)), new HashSet<>(), false),
+				new PackageDependencies(codePackageDependencies));
 
 		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, 1, CODE));
 	}
@@ -76,7 +79,8 @@ public class DependencyGraphFactoryTest {
 		final SubModuleDescriptor a = new SubModuleDescriptor("a", "a", "a", false, "red", new HashSet<>(), new HashSet<>());
 		final SubModuleDescriptor b = new SubModuleDescriptor("b", "b", "b", false, "red", new HashSet<>(), new HashSet<>());
 
-		final DependencyGraph graph = DependencyGraphFactory.create(packageDependencies, new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
+		final DependencyGraph graph = DependencyGraphFactory.create(
+				new DescriptorInfo(new HashSet<>(Arrays.asList(a, b)), new HashSet<>(), false), packageDependencies);
 
 		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, 2, CODE));
 	}
@@ -119,7 +123,8 @@ public class DependencyGraphFactoryTest {
 		final SubModuleDescriptor a = new SubModuleDescriptor("a", "a", "a", false, "red", new HashSet<>(), new HashSet<>());
 		final SubModuleDescriptor b = new SubModuleDescriptor("b", "b", "b", true, "red", new HashSet<>(), new HashSet<>());
 
-		final DependencyGraph graph = DependencyGraphFactory.create(packageDependencies, new HashSet<>(Arrays.asList(a, b)), new HashSet<>());
+		final DependencyGraph graph = DependencyGraphFactory.create(
+				new DescriptorInfo(new HashSet<>(Arrays.asList(a, b)), new HashSet<>(), false), packageDependencies);
 
 		assertThat(graph.getDependencies()).hasSize(1).containsExactlyInAnyOrder(new Dependency(a, b, 3, CODE));
 	}
