@@ -148,7 +148,7 @@ If this is not the desired behavior for some packages a corresponding `@SubModul
 In the following the structure of Pocketsaw is visualized with auto matching enabled:
 ![Pocketsaw auto matching](pocketsaw-auto-matching.png "Pocketsaw auto matching")
 
-### Matching of all packages with sub-modules and external functionalities
+### Explicit matching of packages with sub-modules and external functionalities
 
 Add `@SubModule` and `@ExternalFunctionality` annotated classed until every package is matched and the unit test passes.
 In case of not yet matched package a error message like `UnmatchedPackageException: The package 'com.scheible.pocketsaw.impl.visualization' was not matched at all!` is displayed and either a sub-module or an external functionality has to be added.
