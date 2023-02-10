@@ -35,6 +35,11 @@
 			<artifactId>pocketsaw-es6-modules</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.scheible.pocketsaw.esbuild</groupId>
+			<artifactId>pocketsaw-esbuild</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
