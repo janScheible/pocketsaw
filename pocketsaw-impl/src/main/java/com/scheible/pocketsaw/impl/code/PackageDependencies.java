@@ -39,7 +39,7 @@ public class PackageDependencies {
 		this.packageClasses = unmodifiableMap(packageClasses);
 	}
 
-	public static PackageDependencies withCodeDependencyCounts(Map<Entry<String, String>, Integer> weightedPackageDependencies) {
+	public static PackageDependencies withCodeDependencyCounts(final Map<Entry<String, String>, Integer> weightedPackageDependencies) {
 		final Map<String, Set<String>> packageDependencies = weightedPackageDependencies
 				.entrySet().stream()
 				.map(Entry::getKey)
@@ -77,6 +77,28 @@ public class PackageDependencies {
 				.entrySet().stream()
 				.collect(toMap(Entry::getKey,
 						e -> e.getValue().stream().map(PackageDependency::getToPackage).collect(toSet())));
+
+		return new PackageDependencies(packageDependencies, classLevelPackageDependencies, packageClasses);
+	}
+
+	public static PackageDependencies merge(PackageDependencies a, PackageDependencies b) {
+		final Map<String, Set<String>> packageDependencies = new HashMap<>(a.packageDependencies);
+		for (final Entry<String, Set<String>> packageDependency : b.packageDependencies.entrySet()) {
+			packageDependencies.computeIfAbsent(packageDependency.getKey(), key -> new HashSet<>())
+					.addAll(packageDependency.getValue());
+		}
+
+		final Map<PackageDependency, Set<TypeDependency>> classLevelPackageDependencies = new HashMap<>(a.classLevelPackageDependencies);
+		for (final Entry<PackageDependency, Set<TypeDependency>> classLevelPackageDependency : b.classLevelPackageDependencies.entrySet()) {
+			classLevelPackageDependencies.computeIfAbsent(classLevelPackageDependency.getKey(), key -> new HashSet<>())
+					.addAll(classLevelPackageDependency.getValue());
+		}
+
+		final Map<String, Set<String>> packageClasses = new HashMap<>(a.packageClasses);
+		for (final Entry<String, Set<String>> singlePackageClasses : b.packageClasses.entrySet()) {
+			packageClasses.computeIfAbsent(singlePackageClasses.getKey(), key -> new HashSet<>())
+					.addAll(singlePackageClasses.getValue());
+		}
 
 		return new PackageDependencies(packageDependencies, classLevelPackageDependencies, packageClasses);
 	}

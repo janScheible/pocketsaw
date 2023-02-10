@@ -1,0 +1,23 @@
+{
+	"inputs": {
+		"src/first.ts": {
+			"bytes": 1897,
+			"imports": [
+				{
+					"path": "src/level/second.ts",
+					"kind": "import-statement"
+				},
+				{
+					"path": "external/some-lib.ts",
+					"kind": "import-statement",
+					"external": true
+				}
+			]
+		},
+		"src/level/second.ts": {
+			"bytes": 344,
+			"imports": [
+			]
+		}
+	}
+}

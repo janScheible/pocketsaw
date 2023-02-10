@@ -78,7 +78,7 @@ Add
 <dependency>
     <groupId>com.scheible.pocketsaw.impl</groupId>
     <artifactId>pocketsaw-impl</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -255,7 +255,7 @@ Next it is easiest to add the following to the `scripts` section of the `package
 Pocketsaw can then be run via the CLI:
 
 ```
-java -jar pocketsaw-1.6.0.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.7.0.jar sub-module.json dependencies.json dependency-cruiser pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Angular Tour Of Heros Example
@@ -274,7 +274,7 @@ That means instead of using annotations in the code an external `sub-module.json
 The use case is to analyze an unmodified code base that does (not yet) use Pocketsaw.
 
 ```
-java -jar pocketsaw-1.6.0.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
+java -jar pocketsaw-1.7.0.jar sub-module.json target/spring-boot-app.jar spring-boot-jar:root-packages=sample.multimodule target/pocketsaw-dependency-graph.html --ignore-illegal-code-dependencies
 ```
 
 ### Spring Boot Multimodule Example
@@ -289,7 +289,7 @@ Since version 1.5.0 of Pocketsaw ES6 JavaScript projects are natively supported.
 That means Dependency Cruiser is not required and therefore no Node.js installation at all is needed.
 
 ```
-java -jar pocketsaw-1.6.0.jar sub-module.json ./src es6-modules:print-bundle-report=true pocketsaw-dependency-graph.html
+java -jar pocketsaw-1.7.0.jar sub-module.json ./src es6-modules:print-bundle-report=true pocketsaw-dependency-graph.html
 ```
 
 Or invocation in a Java unit test:
@@ -337,12 +337,29 @@ Module bundle report:
 
 The final bundled app has then 3 bundles: `*default*` (which is loaded eagerly) and 2 lazy loaded ones (`first-page-bundle` and `second-page-bundle`).
 
+## Using Pocketsaw with esbuild
+
+Since version 1.7.0 of Pocketsaw [esbuild](https://esbuild.github.io/api/#metafile) metadata as dependency source is supported.
+The `--metafile` flag of esbuild can be used to generate a metadata file.
+
+```
+java -jar pocketsaw-1.7.0.jar sub-module.json ./target/esbuild-metadata.json esbuild-metadata pocketsaw-dependency-graph.html
+```
+
+Or invocation in a Java unit test:
+```java
+final EsBuildMetadata esBuildMetadata = new EsBuildMetadata();
+
+result = Pocketsaw.analize(new File("./src/main/frontend/sub-modules.json"),
+        esBuildMetaData.read(new File("./target/esbuild-metadata.json")),
+        Optional.of(new File("./target/pocketsaw-frontend-dependency-graph.html")));
+
 ## CLI
 
 Since version 1.1.0 there is CLI support available via the `com.scheible.pocketsaw.impl.cli.Main` class.
 
 ```
-usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser|spring-boot-jar|es6-modules} <pocketsaw-dependency-graph.html> [--ignore-illegal-code-dependencies] [--auto-matching] [--verbose]
+usage: pocketsaw <sub-module.json> <dependencies.file> {dependency-cruiser|spring-boot-jar|es6-modules|esbuild-metadata} <pocketsaw-dependency-graph.html> [--ignore-illegal-code-dependencies] [--auto-matching] [--verbose]
 
 options:
   --ignore-illegal-code-dependencies   Does not fail in case of illegal code dependencies.
@@ -431,6 +448,12 @@ Optional parameters:
 
 - `print-bundle-report`: Boolean parameter for printing the bundle report to the console
 - `start-module`: Root sub-module for the bundle report
+
+#### esbuild metadata dependency information source
+
+Optional parameters:
+
+- `root-package-alias`: Alternative name for the root package (can be used to for example rename a `src` directory to a more application specific package name)
 
 ### Maven usage
 
