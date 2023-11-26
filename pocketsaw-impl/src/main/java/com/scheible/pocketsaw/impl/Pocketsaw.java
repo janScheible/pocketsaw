@@ -68,6 +68,10 @@ public class Pocketsaw {
 	private static final String GRAPH_HTML_OUTPUT_FILE = "./target/pocketsaw-dependency-graph.html";
 
 	public static AnalysisResult analizeCurrentProject(ClasspathScanner classpathScanner) {
+		return analizeCurrentProject(classpathScanner, null);
+	}
+
+	public static AnalysisResult analizeCurrentProject(ClasspathScanner classpathScanner, File dependencyGraphHtmlFile) {
 		final DependencyFilter dependencyFilter = new DependencyFilter(
 				new HashSet<>(Arrays.asList(classpathScanner.getBasePackage())), Stream.of(
 						classpathScanner.getSubModuleAnnotatedClassNames().stream(),
@@ -83,11 +87,15 @@ public class Pocketsaw {
 
 		final DescriptorInfo descriptorInfo = AnnotationDescriptorInfoFactory.createFromClasspath(classpathScanner);
 
-		return analize(descriptorInfo, packageDependencies, Optional.empty());
+		return analize(descriptorInfo, packageDependencies, Optional.ofNullable(dependencyGraphHtmlFile));
 	}
-	
+
 	public static AnalysisResult analizeClasspath(DependencyAwareClasspathScanner classpathScanner) {
-		return analizeCurrentProject(classpathScanner.enableDependencyScan());
+		return analizeClasspath(classpathScanner, null);
+	}
+
+	public static AnalysisResult analizeClasspath(DependencyAwareClasspathScanner classpathScanner, File dependencyGraphHtmlFile) {
+		return analizeCurrentProject(classpathScanner.enableDependencyScan(), dependencyGraphHtmlFile);
 	}
 
 	/**
